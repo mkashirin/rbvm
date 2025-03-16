@@ -1,7 +1,9 @@
-use crate::vm::Vm;
 use std::io;
 use std::io::Write;
 use std::num::ParseIntError;
+
+use crate::assembler::program_parser::parse_program;
+use crate::vm::Vm;
 
 #[allow(dead_code)]
 #[derive(Default)]
@@ -20,7 +22,7 @@ impl Repl {
         loop {
             let mut buffer = String::new();
             let stdin = io::stdin();
-            print!("|-> ");
+            print!(":>> ");
             io::stdout().flush().expect("Unable to flush stdout");
 
             stdin
@@ -29,42 +31,56 @@ impl Repl {
             let buffer = buffer.trim();
             self.command_buffer.push(buffer.to_string());
             match buffer {
-                ".quit" => {
+                "!exit" => {
                     println!("Exiting REPL...");
                     std::process::exit(0);
                 }
-                ".history" => {
+                "!history" => {
                     for command in &self.command_buffer {
                         println!("{}", command)
                     }
                 }
-                ".program" => {
+                "!program" => {
                     println!("VM program vector:");
                     for instruction in &self.vm.program {
                         println!("{}", instruction);
                     }
                 }
-                ".registers" => {
+                "!registers" => {
                     println!("VM registers:");
                     println!("{:#?}", self.vm.registers);
                 }
                 _ => {
-                    let parsed = self.parse_hex(buffer);
-                    match parsed {
-                        Ok(bytes) => {
-                            for value in bytes {
-                                self.vm.push_byte(value);
-                            }
-                        }
-                        Err(_) => println!("Unable to decode hex"),
-                    };
+                    // Code for parsing hexadecimal if you need it:
+                    // ```
+                    // let parsed = self.parse_hex(buffer);
+                    // match parsed {
+                    //     Ok(bytes) => {
+                    //         for value in bytes {
+                    //             self.vm.push_byte(value);
+                    //         }
+                    //     }
+                    //     Err(_) => println!("Unable to decode hex"),
+                    // };
+                    // self.vm.run_once();
+                    // ```
+                    let parsed_program = parse_program(buffer);
+                    if parsed_program.is_err() {
+                        println!("Unable to parse input");
+                        continue;
+                    }
+                    let (_, result) = parsed_program.unwrap();
+                    let bytecode = result.to_bytes();
+                    for byte in bytecode {
+                        self.vm.push_byte(byte);
+                    }
                     self.vm.run_once();
                 }
             }
         }
     }
 
-    fn parse_hex(&self, buffer: &str) -> Result<Vec<u8>, ParseIntError> {
+    fn _parse_hex(&self, buffer: &str) -> Result<Vec<u8>, ParseIntError> {
         let split = buffer.split(" ").collect::<Vec<&str>>();
         let mut parsed: Vec<u8> = vec![];
         for hex_string in split {

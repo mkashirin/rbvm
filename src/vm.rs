@@ -49,9 +49,11 @@ impl Vm {
     }
 
     pub fn run(&mut self) {
-        let mut is_done = false;
-        while !is_done {
-            is_done = self.execute_instruction();
+        loop {
+            let is_done = self.execute_instruction();
+            if is_done {
+                std::process::exit(0);
+            }
         }
     }
 
@@ -65,7 +67,7 @@ impl Vm {
             result = true;
         }
         match self.decode_opcode() {
-            Opcode::EMTB => {
+            Opcode::SKIP => {
                 self.next_8_bits();
             }
             Opcode::HLT => {
@@ -78,29 +80,29 @@ impl Vm {
                 self.registers[register as usize] = number as i32;
             }
             Opcode::ADD => {
-                let first_register = self.next_register();
-                let second_register = self.next_register();
+                let (register0, register1) =
+                    (self.next_register(), self.next_register());
                 self.registers[self.next_8_bits() as usize] =
-                    first_register + second_register;
+                    register0 + register1;
             }
             Opcode::SUB => {
-                let first_register = self.next_register();
-                let second_register = self.next_register();
+                let (register0, register1) =
+                    (self.next_register(), self.next_register());
                 self.registers[self.next_8_bits() as usize] =
-                    first_register - second_register;
+                    register0 - register1;
             }
             Opcode::MUL => {
-                let first_register = self.next_register();
-                let second_register = self.next_register();
+                let (register0, register1) =
+                    (self.next_register(), self.next_register());
                 self.registers[self.next_8_bits() as usize] =
-                    first_register * second_register;
+                    register0 * register1;
             }
             Opcode::DIV => {
-                let first_register = self.next_register();
-                let second_register = self.next_register();
+                let (register0, register1) =
+                    (self.next_register(), self.next_register());
                 self.registers[self.next_8_bits() as usize] =
-                    first_register / second_register;
-                self.remainder = (first_register % second_register) as u32;
+                    register0 / register1;
+                self.remainder = (register0 % register1) as u32;
             }
             Opcode::JMP => {
                 let target = self.next_register();
@@ -118,39 +120,39 @@ impl Vm {
                 self.pc -= value as usize;
             }
             Opcode::EQ => {
-                let first_register = self.next_register();
-                let second_register = self.next_register();
-                self.equal_flag = first_register == second_register;
+                let (register0, register1) =
+                    (self.next_register(), self.next_register());
+                self.equal_flag = register0 == register1;
                 self.next_8_bits();
             }
             Opcode::NEQ => {
-                let first_register = self.next_register();
-                let second_register = self.next_register();
-                self.equal_flag = first_register != second_register;
+                let (register0, register1) =
+                    (self.next_register(), self.next_register());
+                self.equal_flag = register0 != register1;
                 self.next_8_bits();
             }
             Opcode::GT => {
-                let first_register = self.next_register();
-                let second_register = self.next_register();
-                self.equal_flag = first_register > second_register;
+                let (register0, register1) =
+                    (self.next_register(), self.next_register());
+                self.equal_flag = register0 > register1;
                 self.next_8_bits();
             }
             Opcode::LT => {
-                let first_register = self.next_register();
-                let second_register = self.next_register();
-                self.equal_flag = first_register < second_register;
+                let (register0, register1) =
+                    (self.next_register(), self.next_register());
+                self.equal_flag = register0 < register1;
                 self.next_8_bits();
             }
             Opcode::GTQ => {
-                let first_register = self.next_register();
-                let second_register = self.next_register();
-                self.equal_flag = first_register >= second_register;
+                let (register0, register1) =
+                    (self.next_register(), self.next_register());
+                self.equal_flag = register0 >= register1;
                 self.next_8_bits();
             }
             Opcode::LTQ => {
-                let first_register = self.next_register();
-                let second_register = self.next_register();
-                self.equal_flag = first_register <= second_register;
+                let (register0, register1) =
+                    (self.next_register(), self.next_register());
+                self.equal_flag = register0 <= register1;
                 self.next_8_bits();
             }
             Opcode::JEQ => {
@@ -168,7 +170,7 @@ impl Vm {
                 }
             }
             Opcode::IGL => {
-                println!("Unrecognized opcode found. Terminating...");
+                println!("Unrecognized opcode found");
                 result = true;
             }
         }

@@ -1,7 +1,6 @@
-#[derive(Debug, PartialEq)]
-#[repr(u8)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Opcode {
-    EMTB,
+    SKIP,
     HLT,
     LOAD,
     ADD,
@@ -25,7 +24,7 @@ pub enum Opcode {
 impl From<u8> for Opcode {
     fn from(value: u8) -> Self {
         match value {
-            0 => Opcode::EMTB,
+            0 => Opcode::SKIP,
             1 => Opcode::HLT,
             2 => Opcode::LOAD,
             3 => Opcode::ADD,
@@ -43,6 +42,32 @@ impl From<u8> for Opcode {
             15 => Opcode::LTQ,
             16 => Opcode::JEQ,
             17 => Opcode::JNEQ,
+            _ => Opcode::IGL,
+        }
+    }
+}
+
+impl From<&str> for Opcode {
+    fn from(value: &str) -> Self {
+        match value {
+            "skip" => Opcode::SKIP,
+            "hlt" => Opcode::HLT,
+            "load" => Opcode::LOAD,
+            "add" => Opcode::ADD,
+            "sub" => Opcode::SUB,
+            "mul" => Opcode::MUL,
+            "div" => Opcode::DIV,
+            "jmp" => Opcode::JMP,
+            "jmpf" => Opcode::JMPF,
+            "jmpb" => Opcode::JMPB,
+            "eq" => Opcode::EQ,
+            "neq" => Opcode::NEQ,
+            "gt" => Opcode::GT,
+            "lt" => Opcode::LT,
+            "gtq" => Opcode::GTQ,
+            "ltq" => Opcode::LTQ,
+            "jeq" => Opcode::JEQ,
+            "jneq" => Opcode::JNEQ,
             _ => Opcode::IGL,
         }
     }
@@ -73,5 +98,13 @@ mod tests {
     fn test_create_instruction() {
         let instruction = Instruction::new(Opcode::HLT);
         assert_eq!(instruction.opcode, Opcode::HLT);
+    }
+
+    #[test]
+    fn test_opcode_from_str() {
+        let opcode = Opcode::from("load");
+        assert_eq!(opcode, Opcode::LOAD);
+        let opcode = Opcode::from("illegal");
+        assert_eq!(opcode, Opcode::IGL);
     }
 }
