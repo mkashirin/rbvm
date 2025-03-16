@@ -81,7 +81,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_program_load_to_bytes() {
+    fn test_parse_program_to_bytes() {
         let result = parse_program("load $0 #102\n");
         let (_, program) = result.unwrap();
         let bytecode = program.to_bytes();

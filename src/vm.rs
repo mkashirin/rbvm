@@ -68,103 +68,103 @@ impl Vm {
         }
         match self.decode_opcode() {
             Opcode::SKIP => {
-                self.next_8_bits();
+                self.next_8bits();
             }
             Opcode::HLT => {
                 println!("HLT encountered");
                 result = true;
             }
             Opcode::LOAD => {
-                let register = self.next_8_bits();
-                let number = self.next_16_bits();
+                let register = self.next_8bits();
+                let number = self.next_16bits();
                 self.registers[register as usize] = number as i32;
             }
             Opcode::ADD => {
                 let (register0, register1) =
                     (self.next_register(), self.next_register());
-                self.registers[self.next_8_bits() as usize] =
+                self.registers[self.next_8bits() as usize] =
                     register0 + register1;
             }
             Opcode::SUB => {
                 let (register0, register1) =
                     (self.next_register(), self.next_register());
-                self.registers[self.next_8_bits() as usize] =
+                self.registers[self.next_8bits() as usize] =
                     register0 - register1;
             }
             Opcode::MUL => {
                 let (register0, register1) =
                     (self.next_register(), self.next_register());
-                self.registers[self.next_8_bits() as usize] =
+                self.registers[self.next_8bits() as usize] =
                     register0 * register1;
             }
             Opcode::DIV => {
                 let (register0, register1) =
                     (self.next_register(), self.next_register());
-                self.registers[self.next_8_bits() as usize] =
+                self.registers[self.next_8bits() as usize] =
                     register0 / register1;
                 self.remainder = (register0 % register1) as u32;
             }
             Opcode::JMP => {
                 let target = self.next_register();
-                self.next_16_bits();
+                self.next_16bits();
                 self.pc = target as usize;
             }
             Opcode::JMPF => {
                 let value = self.next_register();
-                self.next_16_bits();
+                self.next_16bits();
                 self.pc += value as usize;
             }
             Opcode::JMPB => {
                 let value = self.next_register();
-                self.next_16_bits();
+                self.next_16bits();
                 self.pc -= value as usize;
             }
             Opcode::EQ => {
                 let (register0, register1) =
                     (self.next_register(), self.next_register());
                 self.equal_flag = register0 == register1;
-                self.next_8_bits();
+                self.next_8bits();
             }
             Opcode::NEQ => {
                 let (register0, register1) =
                     (self.next_register(), self.next_register());
                 self.equal_flag = register0 != register1;
-                self.next_8_bits();
+                self.next_8bits();
             }
             Opcode::GT => {
                 let (register0, register1) =
                     (self.next_register(), self.next_register());
                 self.equal_flag = register0 > register1;
-                self.next_8_bits();
+                self.next_8bits();
             }
             Opcode::LT => {
                 let (register0, register1) =
                     (self.next_register(), self.next_register());
                 self.equal_flag = register0 < register1;
-                self.next_8_bits();
+                self.next_8bits();
             }
             Opcode::GTQ => {
                 let (register0, register1) =
                     (self.next_register(), self.next_register());
                 self.equal_flag = register0 >= register1;
-                self.next_8_bits();
+                self.next_8bits();
             }
             Opcode::LTQ => {
                 let (register0, register1) =
                     (self.next_register(), self.next_register());
                 self.equal_flag = register0 <= register1;
-                self.next_8_bits();
+                self.next_8bits();
             }
             Opcode::JEQ => {
                 let target = self.next_register();
-                self.next_16_bits();
+                self.next_16bits();
                 if self.equal_flag {
                     self.pc = target as usize;
                 }
             }
             Opcode::JNEQ => {
                 let target = self.next_register();
-                self.next_16_bits();
+                self.next_16bits();
                 if !self.equal_flag {
                     self.pc = target as usize;
                 }
@@ -178,16 +178,16 @@ impl Vm {
     }
 
     fn next_register(&mut self) -> i32 {
-        self.registers[self.next_8_bits() as usize]
+        self.registers[self.next_8bits() as usize]
     }
 
-    fn next_8_bits(&mut self) -> u8 {
+    fn next_8bits(&mut self) -> u8 {
         let result = self.program[self.pc];
         self.pc += 1;
         result
     }
 
-    fn next_16_bits(&mut self) -> u16 {
+    fn next_16bits(&mut self) -> u16 {
         let result = ((self.program[self.pc] as u16) << 8)
             | self.program[self.pc + 1] as u16;
         self.pc += 2;
