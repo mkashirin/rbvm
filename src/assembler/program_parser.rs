@@ -23,8 +23,8 @@ impl Program {
 pub fn parse_program(input: &str) -> IResult<&str, Program> {
     map(
         many1(alt((
-            parse_instruction,
             terminated(parse_instruction, tag("\n")),
+            parse_instruction,
         ))),
         |instructions| Program { instructions },
     )
