@@ -1,4 +1,6 @@
-use nom::{character::complete::alpha1, combinator::map, IResult, Parser};
+use nom::character::complete::alpha1;
+use nom::combinator::map;
+use nom::{IResult, Parser};
 
 use super::{Opcode, Token};
 

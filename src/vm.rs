@@ -6,6 +6,7 @@ pub struct Vm {
     pub registers: [i32; 8],
     pc: usize,
     pub program: Vec<u8>,
+    heap: Vec<u8>,
     remainder: u32,
     equal_flag: bool,
 }
@@ -15,6 +16,7 @@ impl Vm {
         fill_registers: Option<Vec<(usize, i32)>>,
         pc: Option<usize>,
         program: Vec<u8>,
+        heap: Option<Vec<u8>>,
         remainder: Option<u32>,
         equal_flag: Option<bool>,
     ) -> Vm {
@@ -26,13 +28,15 @@ impl Vm {
                 registers[*filled_register] = *value;
             }
         }
-        let pc = pc.unwrap_or(0);
-        let remainder = remainder.unwrap_or(0);
-        let equal_flag = equal_flag.unwrap_or(false);
+        let pc = pc.unwrap_or_default();
+        let heap = heap.unwrap_or_default();
+        let remainder = remainder.unwrap_or_default();
+        let equal_flag = equal_flag.unwrap_or_default();
         Vm {
             registers,
             pc,
             program,
+            heap,
             remainder,
             equal_flag,
         }
@@ -169,6 +173,22 @@ impl Vm {
                     self.pc = target as usize;
                 }
             }
+            Opcode::ALOC => {
+                let bytes = self.next_register();
+                self.next_16bits();
+                let new_len = self.heap.len() as i32 + bytes;
+                self.heap.resize(new_len as usize, 0);
+            }
+            Opcode::INC => {
+                let register = self.next_8bits();
+                self.next_16bits();
+                self.registers[register as usize] += 1;
+            }
+            Opcode::DEC => {
+                let register = self.next_8bits();
+                self.next_16bits();
+                self.registers[register as usize] -= 1;
+            }
             Opcode::IGL => {
                 println!("Unrecognized opcode found");
                 result = true;
@@ -204,7 +224,7 @@ mod tests {
         pc: Option<usize>,
         program: Vec<u8>,
     ) -> Vm {
-        Vm::new(fill_registers, pc, program, None, None)
+        Vm::new(fill_registers, pc, program, None, None, None)
     }
 
     #[test]
@@ -306,135 +326,144 @@ mod tests {
 
     #[test]
     fn test_opcode_eq() {
-        let fill_registers = Some(vec![(1, 32), (2, 32)]);
-        let program = vec![10, 1, 2, 0];
-        let mut test_vm = get_test_vm(fill_registers, None, program);
-        test_vm.run_once();
-        assert!(test_vm.equal_flag);
+        let fill_registers0 = Some(vec![(1, 32), (2, 32)]);
+        let program0 = vec![10, 1, 2, 0];
+        let mut test_vm0 = get_test_vm(fill_registers0, None, program0);
+        test_vm0.run_once();
+        assert!(test_vm0.equal_flag);
 
-        let fill_registers = Some(vec![(1, 52), (2, 38)]);
-        let program = vec![10, 1, 2, 0];
-        let mut test_vm = get_test_vm(fill_registers, None, program);
-        test_vm.run_once();
-        assert!(!test_vm.equal_flag);
+        let fill_registers1 = Some(vec![(1, 52), (2, 38)]);
+        let program1 = vec![10, 1, 2, 0];
+        let mut test_vm1 = get_test_vm(fill_registers1, None, program1);
+        test_vm1.run_once();
+        assert!(!test_vm1.equal_flag);
     }
 
     #[test]
     fn test_opcode_neq() {
-        let fill_registers = Some(vec![(1, 32), (2, 32)]);
-        let program = vec![11, 1, 2, 0];
-        let mut test_vm = get_test_vm(fill_registers, None, program);
-        test_vm.run_once();
-        assert!(!test_vm.equal_flag);
+        let fill_registers0 = Some(vec![(1, 32), (2, 32)]);
+        let program0 = vec![11, 1, 2, 0];
+        let mut test_vm0 = get_test_vm(fill_registers0, None, program0);
+        test_vm0.run_once();
+        assert!(!test_vm0.equal_flag);
 
-        let fill_registers = Some(vec![(1, 52), (2, 38)]);
-        let program = vec![11, 1, 2, 0];
-        let mut test_vm = get_test_vm(fill_registers, None, program);
-        test_vm.run_once();
-        assert!(test_vm.equal_flag);
+        let fill_registers1 = Some(vec![(1, 52), (2, 38)]);
+        let program1 = vec![11, 1, 2, 0];
+        let mut test_vm1 = get_test_vm(fill_registers1, None, program1);
+        test_vm1.run_once();
+        assert!(test_vm1.equal_flag);
     }
 
     #[test]
     fn test_opcode_gt() {
-        let fill_registers = Some(vec![(1, 8), (2, 5)]);
-        let program = vec![12, 1, 2, 0];
-        let mut test_vm = get_test_vm(fill_registers, None, program);
-        test_vm.run_once();
-        assert!(test_vm.equal_flag);
+        let fill_registers0 = Some(vec![(1, 8), (2, 5)]);
+        let program0 = vec![12, 1, 2, 0];
+        let mut test_vm0 = get_test_vm(fill_registers0, None, program0);
+        test_vm0.run_once();
+        assert!(test_vm0.equal_flag);
 
-        let fill_registers = Some(vec![(1, 5), (2, 8)]);
-        let program = vec![12, 1, 2, 0];
-        let mut test_vm = get_test_vm(fill_registers, None, program);
-        test_vm.run_once();
-        assert!(!test_vm.equal_flag);
+        let fill_registers1 = Some(vec![(1, 5), (2, 8)]);
+        let program1 = vec![12, 1, 2, 0];
+        let mut test_vm1 = get_test_vm(fill_registers1, None, program1);
+        test_vm1.run_once();
+        assert!(!test_vm1.equal_flag);
     }
 
     #[test]
     fn test_opcode_lt() {
-        let fill_registers = Some(vec![(1, 8), (2, 5)]);
-        let program = vec![13, 1, 2, 0];
-        let mut test_vm = get_test_vm(fill_registers, None, program);
-        test_vm.run_once();
-        assert!(!test_vm.equal_flag);
+        let fill_registers0 = Some(vec![(1, 8), (2, 5)]);
+        let program0 = vec![13, 1, 2, 0];
+        let mut test_vm0 = get_test_vm(fill_registers0, None, program0);
+        test_vm0.run_once();
+        assert!(!test_vm0.equal_flag);
 
-        let fill_registers = Some(vec![(1, 5), (2, 8)]);
-        let program = vec![13, 1, 2, 0];
-        let mut test_vm = get_test_vm(fill_registers, None, program);
-        test_vm.run_once();
-        assert!(test_vm.equal_flag);
+        let fill_registers1 = Some(vec![(1, 5), (2, 8)]);
+        let program1 = vec![13, 1, 2, 0];
+        let mut test_vm1 = get_test_vm(fill_registers1, None, program1);
+        test_vm1.run_once();
+        assert!(test_vm1.equal_flag);
     }
 
     #[test]
     fn test_opcode_gtq() {
-        let fill_registers = Some(vec![(1, 77), (2, 64)]);
-        let program = vec![14, 1, 2, 0];
-        let mut test_vm = get_test_vm(fill_registers, None, program);
-        test_vm.run_once();
-        assert!(test_vm.equal_flag);
+        let fill_registers0 = Some(vec![(1, 77), (2, 64)]);
+        let program0 = vec![14, 1, 2, 0];
+        let mut test_vm0 = get_test_vm(fill_registers0, None, program0);
+        test_vm0.run_once();
+        assert!(test_vm0.equal_flag);
 
-        let fill_registers = Some(vec![(1, 21), (2, 21)]);
-        let program = vec![14, 1, 2, 0];
-        let mut test_vm = get_test_vm(fill_registers, None, program);
-        test_vm.run_once();
-        assert!(test_vm.equal_flag);
+        let fill_registers1 = Some(vec![(1, 21), (2, 21)]);
+        let program1 = vec![14, 1, 2, 0];
+        let mut test_vm1 = get_test_vm(fill_registers1, None, program1);
+        test_vm1.run_once();
+        assert!(test_vm1.equal_flag);
 
-        let fill_registers = Some(vec![(1, 8), (2, 64)]);
-        let program = vec![14, 1, 2, 0];
-        let mut test_vm = get_test_vm(fill_registers, None, program);
-        test_vm.run_once();
-        assert!(!test_vm.equal_flag);
+        let fill_registers2 = Some(vec![(1, 8), (2, 64)]);
+        let program2 = vec![14, 1, 2, 0];
+        let mut test_vm2 = get_test_vm(fill_registers2, None, program2);
+        test_vm2.run_once();
+        assert!(!test_vm2.equal_flag);
     }
 
     #[test]
     fn test_opcode_ltq() {
-        let fill_registers = Some(vec![(1, 77), (2, 64)]);
-        let program = vec![15, 1, 2, 0];
-        let mut test_vm = get_test_vm(fill_registers, None, program);
-        test_vm.run_once();
-        assert!(!test_vm.equal_flag);
+        let fill_registers0 = Some(vec![(1, 77), (2, 64)]);
+        let program0 = vec![15, 1, 2, 0];
+        let mut test_vm0 = get_test_vm(fill_registers0, None, program0);
+        test_vm0.run_once();
+        assert!(!test_vm0.equal_flag);
 
-        let fill_registers = Some(vec![(1, 21), (2, 21)]);
-        let program = vec![15, 1, 2, 0];
-        let mut test_vm = get_test_vm(fill_registers, None, program);
-        test_vm.run_once();
-        assert!(test_vm.equal_flag);
+        let fill_registers1 = Some(vec![(1, 21), (2, 21)]);
+        let program1 = vec![15, 1, 2, 0];
+        let mut test_vm1 = get_test_vm(fill_registers1, None, program1);
+        test_vm1.run_once();
+        assert!(test_vm1.equal_flag);
 
-        let fill_registers = Some(vec![(1, 8), (2, 64)]);
-        let program = vec![15, 1, 2, 0];
-        let mut test_vm = get_test_vm(fill_registers, None, program);
-        test_vm.run_once();
-        assert!(test_vm.equal_flag);
+        let fill_registers2 = Some(vec![(1, 8), (2, 64)]);
+        let program2 = vec![15, 1, 2, 0];
+        let mut test_vm2 = get_test_vm(fill_registers2, None, program2);
+        test_vm2.run_once();
+        assert!(test_vm2.equal_flag);
     }
 
     #[test]
     fn test_opcode_jeq() {
-        let pc = Some(4);
-        let program = vec![0, 0, 0, 0, 16, 0, 0, 0];
-        let mut test_vm = get_test_vm(None, pc, program);
-        test_vm.equal_flag = true;
-        test_vm.run_once();
-        assert_eq!(test_vm.pc, 0);
+        let pc0 = Some(4);
+        let program0 = vec![0, 0, 0, 0, 16, 0, 0, 0];
+        let mut test_vm0 = get_test_vm(None, pc0, program0);
+        test_vm0.equal_flag = true;
+        test_vm0.run_once();
+        assert_eq!(test_vm0.pc, 0);
 
-        let pc = Some(4);
-        let program = vec![0, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0];
-        let mut test_vm = get_test_vm(None, pc, program);
-        test_vm.run_once();
-        assert_eq!(test_vm.pc, 8);
+        let pc1 = Some(4);
+        let program1 = vec![0, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0];
+        let mut test_vm1 = get_test_vm(None, pc1, program1);
+        test_vm1.run_once();
+        assert_eq!(test_vm1.pc, 8);
     }
 
     #[test]
     fn test_opcode_jneq() {
-        let pc = Some(4);
-        let program = vec![0, 0, 0, 0, 17, 0, 0, 0];
-        let mut test_vm = get_test_vm(None, pc, program);
-        test_vm.run_once();
-        assert_eq!(test_vm.pc, 0);
+        let pc0 = Some(4);
+        let program0 = vec![0, 0, 0, 0, 17, 0, 0, 0];
+        let mut test_vm0 = get_test_vm(None, pc0, program0);
+        test_vm0.run_once();
+        assert_eq!(test_vm0.pc, 0);
 
-        let pc = Some(4);
-        let program = vec![0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0];
-        let mut test_vm = get_test_vm(None, pc, program);
-        test_vm.equal_flag = true;
+        let pc1 = Some(4);
+        let program1 = vec![0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0];
+        let mut test_vm1 = get_test_vm(None, pc1, program1);
+        test_vm1.equal_flag = true;
+        test_vm1.run_once();
+        assert_eq!(test_vm1.pc, 8);
+    }
+
+    #[test]
+    fn test_opcode_aloc() {
+        let fill_registers = Some(vec![(0, 1024)]);
+        let program = vec![18, 0, 0, 0];
+        let mut test_vm = get_test_vm(fill_registers, None, program);
         test_vm.run_once();
-        assert_eq!(test_vm.pc, 8);
+        assert_eq!(test_vm.heap.len(), 1024)
     }
 }

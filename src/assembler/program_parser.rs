@@ -1,13 +1,15 @@
-use nom::{
-    branch::alt, bytes::complete::tag, combinator::map, multi::many1,
-    sequence::terminated, IResult, Parser,
-};
+use nom::branch::alt;
+use nom::bytes::complete::tag;
+use nom::combinator::map;
+use nom::multi::many1;
+use nom::sequence::terminated;
+use nom::{IResult, Parser};
 
-use super::instruction_parser::{parse_instruction, AssemblerInstruction};
+use super::instruction_parser::{parse_instr, AssemblerInstr};
 
 #[derive(Debug, PartialEq)]
 pub struct Program {
-    instructions: Vec<AssemblerInstruction>,
+    instructions: Vec<AssemblerInstr>,
 }
 
 impl Program {
@@ -22,10 +24,7 @@ impl Program {
 
 pub fn parse_program(input: &str) -> IResult<&str, Program> {
     map(
-        many1(alt((
-            terminated(parse_instruction, tag("\n")),
-            parse_instruction,
-        ))),
+        many1(alt((terminated(parse_instr, tag("\n")), parse_instr))),
         |instructions| Program { instructions },
     )
     .parse(input)
