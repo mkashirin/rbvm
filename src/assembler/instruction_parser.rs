@@ -1,8 +1,6 @@
 use nom::{
     branch::alt,
-    bytes::complete::tag,
     combinator::{map, opt},
-    sequence::preceded,
     IResult, Parser,
 };
 
@@ -10,8 +8,6 @@ use super::{
     opcode_parser::*, operand_parser::parse_integer_operand,
     register_parser::parse_register, Token,
 };
-
-const SPACE: &str = " ";
 
 #[derive(Debug, PartialEq)]
 pub struct AssemblerInstruction {
@@ -57,12 +53,13 @@ impl AssemblerInstruction {
         };
     }
 }
+
 pub fn parse_instruction0(input: &str) -> IResult<&str, AssemblerInstruction> {
     map(
         (
             parse_opcode,
-            opt(preceded(tag(SPACE), parse_register)),
-            opt(preceded(tag(SPACE), parse_integer_operand)),
+            opt(parse_register),
+            opt(parse_integer_operand),
         ),
         |(opcode, operand0, operand1)| AssemblerInstruction {
             opcode,
@@ -78,9 +75,9 @@ pub fn parse_instruction1(input: &str) -> IResult<&str, AssemblerInstruction> {
     map(
         (
             parse_opcode,
-            preceded(tag(SPACE), parse_register),
-            preceded(tag(SPACE), parse_register),
-            opt(preceded(tag(SPACE), parse_register)),
+            parse_register,
+            parse_register,
+            opt(parse_register),
         ),
         |(opcode, operand0, operand1, operand2)| AssemblerInstruction {
             opcode,

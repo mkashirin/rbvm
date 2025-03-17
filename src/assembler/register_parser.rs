@@ -11,7 +11,7 @@ use super::Token;
 pub fn parse_register(input: &str) -> IResult<&str, Token> {
     map(
         preceded(
-            tag("$"),
+            tag(" $"),
             map_res(digit1, |index_str: &str| index_str.parse::<u8>()),
         ),
         |reg_index| Token::Register { reg_index },
@@ -25,7 +25,7 @@ mod tests {
 
     #[test]
     fn test_parse_register() {
-        let result = parse_register("$52");
+        let result = parse_register(" $52");
         assert!(result.is_ok());
 
         let result = parse_register("52");

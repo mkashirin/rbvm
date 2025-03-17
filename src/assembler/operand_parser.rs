@@ -11,7 +11,7 @@ use super::Token;
 pub fn parse_integer_operand(input: &str) -> IResult<&str, Token> {
     map(
         preceded(
-            tag("#"),
+            tag(" #"),
             map_res(digit1, |integer_str: &str| integer_str.parse::<i32>()),
         ),
         |value| Token::IntegerOperand { value },
@@ -25,7 +25,7 @@ mod tests {
 
     #[test]
     fn test_parse_integer_operand() {
-        let result = parse_integer_operand("#52");
+        let result = parse_integer_operand(" #52");
         assert!(result.is_ok());
         let (left, value) = result.unwrap();
         assert_eq!(left, "");
