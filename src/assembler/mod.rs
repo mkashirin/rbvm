@@ -15,3 +15,5 @@ pub enum Token {
     LabelUsage { name: String },
     Directive { name: String },
 }
+
+type MaybeToken = Option<Token>;

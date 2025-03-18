@@ -4,16 +4,16 @@ use nom::{IResult, Parser};
 
 use super::opcode_parser::*;
 use super::operand_parser::parse_operand;
-use super::Token;
+use super::{MaybeToken, Token};
 
 #[derive(Debug, PartialEq)]
 pub struct AssemblerInstr {
-    opcode: Option<Token>,
-    label: Option<Token>,
-    directive: Option<Token>,
-    operand0: Option<Token>,
-    operand1: Option<Token>,
-    operand2: Option<Token>,
+    opcode: MaybeToken,
+    label: MaybeToken,
+    directive: MaybeToken,
+    operand0: MaybeToken,
+    operand1: MaybeToken,
+    operand2: MaybeToken,
 }
 
 impl AssemblerInstr {
