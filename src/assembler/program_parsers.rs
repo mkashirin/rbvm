@@ -5,11 +5,11 @@ use nom::multi::many1;
 use nom::sequence::terminated;
 use nom::{IResult, Parser};
 
-use super::instruction_parsers::{AssemblerInstr, instr_parser};
+use super::instruction_parsers::{Instruction, instr_parser};
 
 #[derive(Debug, PartialEq)]
 pub struct Program {
-    pub instrs: Vec<AssemblerInstr>,
+    pub instrs: Vec<Instruction>,
 }
 
 impl Program {

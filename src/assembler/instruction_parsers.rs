@@ -8,13 +8,13 @@ use super::symbol_parsers::{label_decl_parser, label_usage_parser};
 use super::{AssemblerError, MaybeToken, Token};
 
 #[derive(Debug, PartialEq)]
-pub struct AssemblerInstr {
+pub struct Instruction {
     directive: MaybeToken,
     label: MaybeToken,
     opcode: MaybeToken,
     operands: (MaybeToken, MaybeToken, MaybeToken),
 }
-impl AssemblerInstr {
+impl Instruction {
     pub fn new(
         directive: MaybeToken,
         label: MaybeToken,
@@ -53,7 +53,7 @@ impl AssemblerInstr {
             [&self.operands.0, &self.operands.1, &self.operands.2].iter()
         {
             if let Some(token) = *operand {
-                AssemblerInstr::extract_operand(token, &mut parsed)
+                Instruction::extract_operand(token, &mut parsed)
             }
         }
         while parsed.len() < 4 {
@@ -80,10 +80,10 @@ impl AssemblerInstr {
     }
 }
 
-pub fn instr_parser0(input: &str) -> IResult<&str, AssemblerInstr> {
+pub fn instr_parser0(input: &str) -> IResult<&str, Instruction> {
     map(
         (opcode_parser, operand_porser, opt(operand_porser)),
-        |(opcode, operand0, operand1)| AssemblerInstr {
+        |(opcode, operand0, operand1)| Instruction {
             directive: None,
             label: None,
             opcode: Some(opcode),
@@ -93,7 +93,7 @@ pub fn instr_parser0(input: &str) -> IResult<&str, AssemblerInstr> {
     .parse(input)
 }
 
-pub fn instr_parser1(input: &str) -> IResult<&str, AssemblerInstr> {
+pub fn instr_parser1(input: &str) -> IResult<&str, Instruction> {
     map(
         (
             opt(label_decl_parser),
@@ -102,7 +102,7 @@ pub fn instr_parser1(input: &str) -> IResult<&str, AssemblerInstr> {
             opt(operand_porser),
             opt(operand_porser),
         ),
-        |(label, opcode, operand0, operand1, operand2)| AssemblerInstr {
+        |(label, opcode, operand0, operand1, operand2)| Instruction {
             directive: None,
             label,
             opcode: Some(opcode),
@@ -112,9 +112,9 @@ pub fn instr_parser1(input: &str) -> IResult<&str, AssemblerInstr> {
     .parse(input)
 }
 
-pub fn instr_parser2(input: &str) -> IResult<&str, AssemblerInstr> {
+pub fn instr_parser2(input: &str) -> IResult<&str, Instruction> {
     map((opcode_parser, label_usage_parser), |(opcode, label)| {
-        AssemblerInstr {
+        Instruction {
             directive: None,
             label: Some(label),
             opcode: Some(opcode),
@@ -124,7 +124,7 @@ pub fn instr_parser2(input: &str) -> IResult<&str, AssemblerInstr> {
     .parse(input)
 }
 
-pub fn instr_parser(input: &str) -> IResult<&str, AssemblerInstr> {
+pub fn instr_parser(input: &str) -> IResult<&str, Instruction> {
     alt((instr_parser2, instr_parser1, instr_parser0)).parse(input)
 }
 
@@ -140,7 +140,7 @@ mod tests {
         let (_, instr) = result.unwrap();
         assert_eq!(
             instr,
-            AssemblerInstr::new(
+            Instruction::new(
                 None,
                 None,
                 Some(Token::Op { code: Opcode::JUMP }),
@@ -156,7 +156,7 @@ mod tests {
         let (_, instr) = result.unwrap();
         assert_eq!(
             instr,
-            AssemblerInstr::new(
+            Instruction::new(
                 None,
                 None,
                 Some(Token::Op { code: Opcode::LOAD }),
@@ -176,7 +176,7 @@ mod tests {
         let (_, instr) = result.unwrap();
         assert_eq!(
             instr,
-            AssemblerInstr::new(
+            Instruction::new(
                 None,
                 None,
                 Some(Token::Op { code: Opcode::HALT }),
@@ -192,7 +192,7 @@ mod tests {
         let (_, instr) = result.unwrap();
         assert_eq!(
             instr,
-            AssemblerInstr::new(
+            Instruction::new(
                 None,
                 None,
                 Some(Token::Op { code: Opcode::NE }),
@@ -212,7 +212,7 @@ mod tests {
         let (_, instr) = result.unwrap();
         assert_eq!(
             instr,
-            AssemblerInstr::new(
+            Instruction::new(
                 None,
                 None,
                 Some(Token::Op { code: Opcode::MUL }),
@@ -232,7 +232,7 @@ mod tests {
         let (_, instr) = result.unwrap();
         assert_eq!(
             instr,
-            AssemblerInstr::new(
+            Instruction::new(
                 None,
                 Some(Token::LabelDecl {
                     name: "test".to_string()
@@ -250,7 +250,7 @@ mod tests {
         let (_, instr) = result.unwrap();
         assert_eq!(
             instr,
-            AssemblerInstr::new(
+            Instruction::new(
                 None,
                 Some(Token::LabelUsage {
                     name: "test".to_string()
