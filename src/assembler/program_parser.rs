@@ -9,13 +9,13 @@ use super::instruction_parser::{parse_instr, AssemblerInstr};
 
 #[derive(Debug, PartialEq)]
 pub struct Program {
-    instructions: Vec<AssemblerInstr>,
+    pub instrs: Vec<AssemblerInstr>,
 }
 
 impl Program {
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut program = vec![];
-        for instruction in &self.instructions {
+        for instruction in &self.instrs {
             program.append(&mut instruction.to_bytes());
         }
         program
@@ -25,7 +25,7 @@ impl Program {
 pub fn parse_program(input: &str) -> IResult<&str, Program> {
     map(
         many1(alt((terminated(parse_instr, tag("\n")), parse_instr))),
-        |instructions| Program { instructions },
+        |instrs| Program { instrs },
     )
     .parse(input)
 }
@@ -40,7 +40,7 @@ mod tests {
         assert!(result.is_ok());
         let (leftover, program) = result.unwrap();
         assert_eq!(leftover, "");
-        assert_eq!(1, program.instructions.len());
+        assert_eq!(1, program.instrs.len());
     }
 
     #[test]
@@ -49,7 +49,7 @@ mod tests {
         assert!(result.is_ok());
         let (leftover, program) = result.unwrap();
         assert_eq!(leftover, "");
-        assert_eq!(1, program.instructions.len());
+        assert_eq!(1, program.instrs.len());
     }
 
     #[test]
@@ -58,7 +58,7 @@ mod tests {
         assert!(result.is_ok());
         let (leftover, program) = result.unwrap();
         assert_eq!(leftover, "");
-        assert_eq!(1, program.instructions.len());
+        assert_eq!(1, program.instrs.len());
     }
 
     #[test]
@@ -67,7 +67,7 @@ mod tests {
         assert!(result.is_ok());
         let (leftover, program) = result.unwrap();
         assert_eq!(leftover, "");
-        assert_eq!(1, program.instructions.len());
+        assert_eq!(1, program.instrs.len());
     }
 
     #[test]
@@ -76,7 +76,7 @@ mod tests {
         assert!(result.is_ok());
         let (leftover, program) = result.unwrap();
         assert_eq!(leftover, "");
-        assert_eq!(1, program.instructions.len());
+        assert_eq!(1, program.instrs.len());
     }
 
     #[test]

@@ -52,6 +52,12 @@ impl Vm {
         self.program.push(value);
     }
 
+    pub fn push_bytes(&mut self, values: Vec<u8>) {
+        for value in values {
+            self.program.push(value);
+        }
+    }
+
     pub fn run(&mut self) {
         loop {
             let is_done = self.execute_instruction();

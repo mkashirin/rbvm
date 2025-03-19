@@ -20,8 +20,8 @@ mod tests {
         let result = parse_opcode("load");
         assert!(result.is_ok());
         let (left, token) = result.unwrap();
-        assert_eq!(token, Token::Op { code: Opcode::LOAD });
         assert_eq!(left, "");
+        assert_eq!(token, Token::Op { code: Opcode::LOAD });
     }
 
     #[test]
@@ -29,7 +29,7 @@ mod tests {
         let result = parse_opcode("illegal");
         assert!(result.is_ok());
         let (left, token) = result.unwrap();
-        assert_eq!(token, Token::Op { code: Opcode::IGL });
         assert_eq!(left, "");
+        assert_eq!(token, Token::Op { code: Opcode::IGL });
     }
 }
