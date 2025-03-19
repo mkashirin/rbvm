@@ -1,6 +1,6 @@
 use program_parsers::{Program, program_parser};
 
-use crate::instruction::Opcode;
+use crate::opcodes::Opcode;
 
 pub mod instruction_parsers;
 pub mod opcode_parsers;

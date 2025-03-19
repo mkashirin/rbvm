@@ -1,4 +1,4 @@
-use crate::instruction::Opcode;
+use crate::opcodes::Opcode;
 use crate::types::BoundedUsize;
 
 #[derive(Debug, Default)]

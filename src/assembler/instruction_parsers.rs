@@ -128,7 +128,7 @@ pub fn instr_parser(input: &str) -> IResult<&str, Instruction> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::instruction::Opcode;
+    use crate::opcodes::Opcode;
 
     #[test]
     fn test_instr_parser0_one_register() {

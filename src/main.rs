@@ -7,7 +7,7 @@ use std::fs::read_to_string;
 use clap::{Parser, Subcommand};
 
 pub mod assembler;
-pub mod instruction;
+pub mod opcodes;
 pub mod repl;
 pub mod types;
 pub mod vm;
