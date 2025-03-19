@@ -139,17 +139,17 @@ mod tests {
     }
 
     #[test]
-    // #[ignore = "Skip for now"]
     fn test_assemble_program() {
         let mut assembler = Assembler::default();
-        let program = "load $0 #100
+        let program = r#"load $0 #100
 load $1 #1
 load $2 #0
 test: inc $0
 neq $0 $2
 jump @test
 add $1 $2 $3
-halt";
+halt
+        "#;
         let assembled = assembler.assemble(program).unwrap();
         let mut vm = Vm::default();
         assert_eq!(assembled.len(), 32);
