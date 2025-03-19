@@ -39,14 +39,11 @@ impl Instruction {
 
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut parsed = vec![];
-        if let Some(opcode) = &self.opcode {
-            match opcode {
-                Token::Op { code } => parsed.push(*code as u8),
-                _ => {
-                    println!("Invalid value found in opcode field");
-                    std::process::exit(1);
-                }
-            }
+        if let Some(Token::Op { code }) = &self.opcode {
+            parsed.push(*code as u8);
+        } else {
+            println!("Invalid value found in opcode field");
+            std::process::exit(1);
         };
 
         for operand in
