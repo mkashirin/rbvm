@@ -4,7 +4,7 @@ use nom::{IResult, Parser};
 
 use super::{Opcode, Token};
 
-pub fn parse_opcode(input: &str) -> IResult<&str, Token> {
+pub fn opcode_parser(input: &str) -> IResult<&str, Token> {
     map(alpha1, |code_str| Token::Op {
         code: Opcode::from(code_str),
     })
@@ -16,8 +16,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_opcode_load() {
-        let result = parse_opcode("load");
+    fn test_opcode_parser_load() {
+        let result = opcode_parser("load");
         assert!(result.is_ok());
         let (left, token) = result.unwrap();
         assert_eq!(left, "");
@@ -25,11 +25,11 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_opcode_igl() {
-        let result = parse_opcode("illegal");
+    fn test_opcode_parser_ill() {
+        let result = opcode_parser("illegal");
         assert!(result.is_ok());
         let (left, token) = result.unwrap();
         assert_eq!(left, "");
-        assert_eq!(token, Token::Op { code: Opcode::IGL });
+        assert_eq!(token, Token::Op { code: Opcode::ILL });
     }
 }

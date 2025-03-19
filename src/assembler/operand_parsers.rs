@@ -7,7 +7,7 @@ use nom::{IResult, Parser};
 
 use super::Token;
 
-pub fn parse_register(input: &str) -> IResult<&str, Token> {
+pub fn register_parser(input: &str) -> IResult<&str, Token> {
     map(
         preceded(
             tag(" $"),
@@ -18,7 +18,7 @@ pub fn parse_register(input: &str) -> IResult<&str, Token> {
     .parse(input)
 }
 
-pub fn parse_int_operand(input: &str) -> IResult<&str, Token> {
+pub fn int_operand_parser(input: &str) -> IResult<&str, Token> {
     map(
         preceded(
             tag(" #"),
@@ -29,8 +29,8 @@ pub fn parse_int_operand(input: &str) -> IResult<&str, Token> {
     .parse(input)
 }
 
-pub fn parse_operand(input: &str) -> IResult<&str, Token> {
-    alt((parse_register, parse_int_operand)).parse(input)
+pub fn operand_porser(input: &str) -> IResult<&str, Token> {
+    alt((register_parser, int_operand_parser)).parse(input)
 }
 
 #[cfg(test)]
@@ -38,29 +38,29 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_register() {
-        let result = parse_register(" $52");
+    fn test_register_parser() {
+        let result = register_parser(" $52");
         assert!(result.is_ok());
 
-        let result = parse_register("52");
+        let result = register_parser("52");
         assert!(result.is_err());
 
-        let result = parse_register("$z");
+        let result = register_parser("$z");
         assert!(result.is_err());
     }
 
     #[test]
-    fn test_parse_integer_operand() {
-        let result = parse_int_operand(" #52");
+    fn test_int_operand_parser() {
+        let result = int_operand_parser(" #52");
         assert!(result.is_ok());
         let (left, value) = result.unwrap();
         assert_eq!(left, "");
         assert_eq!(value, Token::IntOperand { value: 52 });
 
-        let result = parse_int_operand("52");
+        let result = int_operand_parser("52");
         assert!(result.is_err());
 
-        let result = parse_int_operand("#z");
+        let result = int_operand_parser("#z");
         assert!(result.is_err());
     }
 }

@@ -1,12 +1,12 @@
-use program_parser::{Program, parse_program};
+use program_parsers::{Program, program_parser};
 
 use crate::instruction::Opcode;
 
-pub mod instruction_parser;
-pub mod opcode_parser;
-pub mod operand_parser;
-pub mod program_parser;
-pub mod symbol_parser;
+pub mod instruction_parsers;
+pub mod opcode_parsers;
+pub mod operand_parsers;
+pub mod program_parsers;
+pub mod symbol_parsers;
 
 #[derive(Debug)]
 pub enum AssemblerError {
@@ -30,12 +30,8 @@ pub struct Assembler {
     symbol_table: SymbolTable,
 }
 impl Assembler {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn assemble(&mut self, bytecode: &str) -> Option<Vec<u8>> {
-        match parse_program(bytecode) {
+    pub fn assemble(&mut self, source_code: &str) -> Option<Vec<u8>> {
+        match program_parser(source_code) {
             Ok((_, program)) => {
                 self.process_first_phase(&program);
                 Some(self.process_second_phase(&program))
@@ -55,7 +51,6 @@ impl Assembler {
     fn process_second_phase(&mut self, program: &Program) -> Vec<u8> {
         let mut bytecode = vec![];
         for instr in program.instrs.iter() {
-            println!("{:?}", instr);
             let mut bytes = instr.to_bytes();
             bytecode.append(&mut bytes);
         }
@@ -87,10 +82,6 @@ pub struct SymbolTable {
     symbols: Vec<Symbol>,
 }
 impl SymbolTable {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     pub fn push_symbol(&mut self, value: Symbol) {
         self.symbols.push(value);
     }
@@ -133,7 +124,7 @@ mod tests {
 
     #[test]
     fn test_symbol_table() {
-        let mut table = SymbolTable::new();
+        let mut table = SymbolTable::default();
         let new_symbol = Symbol::new("test".to_string(), SymbolType::Label, 12);
         table.push_symbol(new_symbol);
         assert_eq!(table.symbols.len(), 1);
@@ -150,15 +141,15 @@ mod tests {
     #[test]
     // #[ignore = "Skip for now"]
     fn test_assemble_program() {
-        let mut assembler = Assembler::new();
+        let mut assembler = Assembler::default();
         let program = "load $0 #100
 load $1 #1
 load $2 #0
 test: inc $0
 neq $0 $2
-jmp @test
+jump @test
 add $1 $2 $3
-hlt";
+halt";
         let assembled = assembler.assemble(program).unwrap();
         let mut vm = Vm::default();
         assert_eq!(assembled.len(), 32);

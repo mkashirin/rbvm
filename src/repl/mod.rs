@@ -1,10 +1,8 @@
-use std::fs::{File, read_to_string};
 use std::io;
 use std::io::Write;
 use std::num::ParseIntError;
-use std::path::Path;
 
-use crate::assembler::program_parser::parse_program;
+use crate::assembler::program_parsers::program_parser;
 use crate::vm::Vm;
 
 #[allow(dead_code)]
@@ -52,27 +50,6 @@ impl Repl {
                     println!("VM registers:");
                     println!("{:#?}", self.vm.registers);
                 }
-                "!load" => {
-                    print!("Enter path to the file to load: ");
-                    io::stdout().flush().expect("Unable to flush stdout");
-                    let mut buffer = String::new();
-                    stdin
-                        .read_line(&mut buffer)
-                        .expect("Unable to read line from user");
-                    let buffer = buffer.trim();
-                    let filename = Path::new(&buffer);
-                    File::open(Path::new(&filename)).expect("File not found");
-                    let contents = read_to_string(filename)
-                        .expect("There was an error reading from the file");
-                    let program = match parse_program(&contents) {
-                        Ok((_, program)) => program,
-                        Err(e) => {
-                            println!("Unable to parse input: {:#?}", e);
-                            continue;
-                        }
-                    };
-                    self.vm.program.append(&mut program.to_bytes());
-                }
                 _ => {
                     // Code for parsing hexadecimal if you need it:
                     // ```
@@ -87,7 +64,7 @@ impl Repl {
                     // };
                     // self.vm.run_once();
                     // ```
-                    let parsed_program = parse_program(buffer);
+                    let parsed_program = program_parser(buffer);
                     if parsed_program.is_err() {
                         println!("Unable to parse input");
                         continue;

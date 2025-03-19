@@ -1,54 +1,54 @@
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Opcode {
     SKIP,
-    HLT,
+    HALT,
     LOAD,
     ADD,
     SUB,
     MUL,
     DIV,
-    JMP,
-    JMPF,
-    JMPB,
+    JUMP,
+    JF,
+    JB,
     EQ,
-    NEQ,
+    NE,
     GT,
     LT,
-    GTQ,
-    LTQ,
-    JEQ,
-    JNEQ,
-    ALOC,
+    GTE,
+    LTE,
+    JE,
+    JNE,
+    ALLO,
     INC,
     DEC,
-    IGL,
+    ILL,
 }
 
 impl From<u8> for Opcode {
     fn from(value: u8) -> Self {
         match value {
             0 => Opcode::SKIP,
-            1 => Opcode::HLT,
+            1 => Opcode::HALT,
             2 => Opcode::LOAD,
             3 => Opcode::ADD,
             4 => Opcode::SUB,
             5 => Opcode::MUL,
             6 => Opcode::DIV,
-            7 => Opcode::JMP,
-            8 => Opcode::JMPF,
-            9 => Opcode::JMPB,
+            7 => Opcode::JUMP,
+            8 => Opcode::JF,
+            9 => Opcode::JB,
             10 => Opcode::EQ,
-            11 => Opcode::NEQ,
+            11 => Opcode::NE,
             12 => Opcode::GT,
             13 => Opcode::LT,
-            14 => Opcode::GTQ,
-            15 => Opcode::LTQ,
-            16 => Opcode::JEQ,
-            17 => Opcode::JNEQ,
-            18 => Opcode::ALOC,
+            14 => Opcode::GTE,
+            15 => Opcode::LTE,
+            16 => Opcode::JE,
+            17 => Opcode::JNE,
+            18 => Opcode::ALLO,
             19 => Opcode::INC,
             20 => Opcode::DEC,
-            _ => Opcode::IGL,
+            _ => Opcode::ILL,
         }
     }
 }
@@ -57,27 +57,27 @@ impl From<&str> for Opcode {
     fn from(value: &str) -> Self {
         match value {
             "skip" => Opcode::SKIP,
-            "hlt" => Opcode::HLT,
+            "halt" => Opcode::HALT,
             "load" => Opcode::LOAD,
             "add" => Opcode::ADD,
             "sub" => Opcode::SUB,
             "mul" => Opcode::MUL,
             "div" => Opcode::DIV,
-            "jmp" => Opcode::JMP,
-            "jmpf" => Opcode::JMPF,
-            "jmpb" => Opcode::JMPB,
+            "jump" => Opcode::JUMP,
+            "jf" => Opcode::JF,
+            "jb" => Opcode::JB,
             "eq" => Opcode::EQ,
-            "neq" => Opcode::NEQ,
+            "ne" => Opcode::NE,
             "gt" => Opcode::GT,
             "lt" => Opcode::LT,
-            "gtq" => Opcode::GTQ,
-            "ltq" => Opcode::LTQ,
-            "jeq" => Opcode::JEQ,
-            "jneq" => Opcode::JNEQ,
-            "aloc" => Opcode::ALOC,
+            "gte" => Opcode::GTE,
+            "lte" => Opcode::LTE,
+            "je" => Opcode::JE,
+            "jne" => Opcode::JNE,
+            "allo" => Opcode::ALLO,
             "inc" => Opcode::INC,
             "dec" => Opcode::DEC,
-            _ => Opcode::IGL,
+            _ => Opcode::ILL,
         }
     }
 }
@@ -87,9 +87,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_create_hlt() {
-        let opcode = Opcode::HLT;
-        assert_eq!(opcode, Opcode::HLT);
+    fn test_create_halt() {
+        let opcode = Opcode::HALT;
+        assert_eq!(opcode, Opcode::HALT);
     }
 
     #[test]
@@ -97,6 +97,6 @@ mod tests {
         let opcode = Opcode::from("load");
         assert_eq!(opcode, Opcode::LOAD);
         let opcode = Opcode::from("illegal");
-        assert_eq!(opcode, Opcode::IGL);
+        assert_eq!(opcode, Opcode::ILL);
     }
 }

@@ -5,7 +5,7 @@ use nom::multi::many1;
 use nom::sequence::terminated;
 use nom::{IResult, Parser};
 
-use super::instruction_parser::{AssemblerInstr, parse_instr};
+use super::instruction_parsers::{AssemblerInstr, instr_parser};
 
 #[derive(Debug, PartialEq)]
 pub struct Program {
@@ -22,9 +22,9 @@ impl Program {
     }
 }
 
-pub fn parse_program(input: &str) -> IResult<&str, Program> {
+pub fn program_parser(input: &str) -> IResult<&str, Program> {
     map(
-        many1(alt((terminated(parse_instr, tag("\n")), parse_instr))),
+        many1(alt((terminated(instr_parser, tag("\n")), instr_parser))),
         |instrs| Program { instrs },
     )
     .parse(input)
@@ -35,8 +35,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_program_no_registers() {
-        let result = parse_program("hlt\n");
+    fn test_program_parser_no_registers() {
+        let result = program_parser("hlt\n");
         assert!(result.is_ok());
         let (leftover, program) = result.unwrap();
         assert_eq!(leftover, "");
@@ -44,8 +44,8 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_program_one_register() {
-        let result = parse_program("jmp $0\n");
+    fn test_program_parser_one_register() {
+        let result = program_parser("jmp $0\n");
         assert!(result.is_ok());
         let (leftover, program) = result.unwrap();
         assert_eq!(leftover, "");
@@ -53,8 +53,8 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_program_two_registers() {
-        let result = parse_program("eq $1 $2\n");
+    fn test_program_parser_two_registers() {
+        let result = program_parser("eq $1 $2\n");
         assert!(result.is_ok());
         let (leftover, program) = result.unwrap();
         assert_eq!(leftover, "");
@@ -62,8 +62,8 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_program_register_with_integer() {
-        let result = parse_program("load $0 #102\n");
+    fn test_program_parser_register_with_integer() {
+        let result = program_parser("load $0 #102\n");
         assert!(result.is_ok());
         let (leftover, program) = result.unwrap();
         assert_eq!(leftover, "");
@@ -71,8 +71,8 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_program_three_registers() {
-        let result = parse_program("add $1 $2 $3\n");
+    fn test_program_parser_three_registers() {
+        let result = program_parser("add $1 $2 $3\n");
         assert!(result.is_ok());
         let (leftover, program) = result.unwrap();
         assert_eq!(leftover, "");
@@ -80,8 +80,8 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_program_to_bytes() {
-        let result = parse_program("load $0 #102\n");
+    fn test_program_parser_to_bytes() {
+        let result = program_parser("load $0 #102\n");
         let (_, program) = result.unwrap();
         let bytecode = program.to_bytes();
         assert_eq!(bytecode.len(), 4);

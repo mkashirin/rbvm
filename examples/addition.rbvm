@@ -1,0 +1,5 @@
+load $1 #14
+load $2 #87
+inc $2
+add $1 $2 $3
+halt

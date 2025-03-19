@@ -1,7 +1,7 @@
 use crate::instruction::Opcode;
 use crate::types::BoundedUsize;
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Vm {
     pub registers: [i32; 8],
     pc: usize,
@@ -62,6 +62,8 @@ impl Vm {
         loop {
             let is_done = self.execute_instruction();
             if is_done {
+                // Debug print!
+                println!("Terminated. VM state: {:#?}", self);
                 std::process::exit(0);
             }
         }
@@ -80,8 +82,8 @@ impl Vm {
             Opcode::SKIP => {
                 self.next_8bits();
             }
-            Opcode::HLT => {
-                println!("HLT encountered");
+            Opcode::HALT => {
+                println!("HALT encountered");
                 result = true;
             }
             Opcode::LOAD => {
@@ -114,17 +116,17 @@ impl Vm {
                     register0 / register1;
                 self.remainder = (register0 % register1) as u32;
             }
-            Opcode::JMP => {
+            Opcode::JUMP => {
                 let target = self.next_register();
                 self.next_16bits();
                 self.pc = target as usize;
             }
-            Opcode::JMPF => {
+            Opcode::JF => {
                 let value = self.next_register();
                 self.next_16bits();
                 self.pc += value as usize;
             }
-            Opcode::JMPB => {
+            Opcode::JB => {
                 let value = self.next_register();
                 self.next_16bits();
                 self.pc -= value as usize;
@@ -135,7 +137,7 @@ impl Vm {
                 self.equal_flag = register0 == register1;
                 self.next_8bits();
             }
-            Opcode::NEQ => {
+            Opcode::NE => {
                 let (register0, register1) =
                     (self.next_register(), self.next_register());
                 self.equal_flag = register0 != register1;
@@ -153,33 +155,33 @@ impl Vm {
                 self.equal_flag = register0 < register1;
                 self.next_8bits();
             }
-            Opcode::GTQ => {
+            Opcode::GTE => {
                 let (register0, register1) =
                     (self.next_register(), self.next_register());
                 self.equal_flag = register0 >= register1;
                 self.next_8bits();
             }
-            Opcode::LTQ => {
+            Opcode::LTE => {
                 let (register0, register1) =
                     (self.next_register(), self.next_register());
                 self.equal_flag = register0 <= register1;
                 self.next_8bits();
             }
-            Opcode::JEQ => {
+            Opcode::JE => {
                 let target = self.next_register();
                 self.next_16bits();
                 if self.equal_flag {
                     self.pc = target as usize;
                 }
             }
-            Opcode::JNEQ => {
+            Opcode::JNE => {
                 let target = self.next_register();
                 self.next_16bits();
                 if !self.equal_flag {
                     self.pc = target as usize;
                 }
             }
-            Opcode::ALOC => {
+            Opcode::ALLO => {
                 let bytes = self.next_register();
                 self.next_16bits();
                 let new_len = self.heap.len() as i32 + bytes;
@@ -195,7 +197,7 @@ impl Vm {
                 self.next_16bits();
                 self.registers[register as usize] -= 1;
             }
-            Opcode::IGL => {
+            Opcode::ILL => {
                 println!("Unrecognized opcode found");
                 result = true;
             }
@@ -240,7 +242,7 @@ mod tests {
     }
 
     #[test]
-    fn test_opcode_hlt() {
+    fn test_opcode_halt() {
         let program = vec![1, 0, 0, 0];
         let mut test_vm = get_test_vm(None, None, program);
         test_vm.run_once();
@@ -248,7 +250,7 @@ mod tests {
     }
 
     #[test]
-    fn test_opcode_igl() {
+    fn test_opcode_ill() {
         let program = vec![200, 0, 0, 0];
         let mut test_vm = get_test_vm(None, None, program);
         test_vm.run_once();
@@ -303,7 +305,7 @@ mod tests {
     }
 
     #[test]
-    fn test_opcode_jmp() {
+    fn test_opcode_jump() {
         let fill_registers = Some(vec![(0, 4)]);
         let program = vec![7, 0, 0, 0];
         let mut test_vm = get_test_vm(fill_registers, None, program);
@@ -312,7 +314,7 @@ mod tests {
     }
 
     #[test]
-    fn test_opcode_jmpf() {
+    fn test_opcode_jf() {
         let fill_registers = Some(vec![(0, 4)]);
         let program = vec![8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         let mut test_vm = get_test_vm(fill_registers, None, program);
@@ -321,7 +323,7 @@ mod tests {
     }
 
     #[test]
-    fn test_opcode_jmpb() {
+    fn test_opcode_jb() {
         let fill_registers = Some(vec![(0, 8)]);
         let pc = Some(4);
         let program = vec![0, 0, 0, 0, 9, 0, 0, 0];
@@ -346,7 +348,7 @@ mod tests {
     }
 
     #[test]
-    fn test_opcode_neq() {
+    fn test_opcode_ne() {
         let fill_registers0 = Some(vec![(1, 32), (2, 32)]);
         let program0 = vec![11, 1, 2, 0];
         let mut test_vm0 = get_test_vm(fill_registers0, None, program0);
@@ -391,7 +393,7 @@ mod tests {
     }
 
     #[test]
-    fn test_opcode_gtq() {
+    fn test_opcode_gte() {
         let fill_registers0 = Some(vec![(1, 77), (2, 64)]);
         let program0 = vec![14, 1, 2, 0];
         let mut test_vm0 = get_test_vm(fill_registers0, None, program0);
@@ -412,7 +414,7 @@ mod tests {
     }
 
     #[test]
-    fn test_opcode_ltq() {
+    fn test_opcode_lte() {
         let fill_registers0 = Some(vec![(1, 77), (2, 64)]);
         let program0 = vec![15, 1, 2, 0];
         let mut test_vm0 = get_test_vm(fill_registers0, None, program0);
@@ -433,7 +435,7 @@ mod tests {
     }
 
     #[test]
-    fn test_opcode_jeq() {
+    fn test_opcode_je() {
         let pc0 = Some(4);
         let program0 = vec![0, 0, 0, 0, 16, 0, 0, 0];
         let mut test_vm0 = get_test_vm(None, pc0, program0);
@@ -449,7 +451,7 @@ mod tests {
     }
 
     #[test]
-    fn test_opcode_jneq() {
+    fn test_opcode_jne() {
         let pc0 = Some(4);
         let program0 = vec![0, 0, 0, 0, 17, 0, 0, 0];
         let mut test_vm0 = get_test_vm(None, pc0, program0);
@@ -465,7 +467,7 @@ mod tests {
     }
 
     #[test]
-    fn test_opcode_aloc() {
+    fn test_opcode_allo() {
         let fill_registers = Some(vec![(0, 1024)]);
         let program = vec![18, 0, 0, 0];
         let mut test_vm = get_test_vm(fill_registers, None, program);

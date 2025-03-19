@@ -2,9 +2,9 @@ use nom::branch::alt;
 use nom::combinator::{map, opt};
 use nom::{IResult, Parser};
 
-use super::opcode_parser::*;
-use super::operand_parser::parse_operand;
-use super::symbol_parser::{parse_label_decl, parse_label_usage};
+use super::opcode_parsers::*;
+use super::operand_parsers::operand_porser;
+use super::symbol_parsers::{label_decl_parser, label_usage_parser};
 use super::{AssemblerError, MaybeToken, Token};
 
 #[derive(Debug, PartialEq)]
@@ -80,9 +80,9 @@ impl AssemblerInstr {
     }
 }
 
-pub fn parse_instr0(input: &str) -> IResult<&str, AssemblerInstr> {
+pub fn instr_parser0(input: &str) -> IResult<&str, AssemblerInstr> {
     map(
-        (parse_opcode, parse_operand, opt(parse_operand)),
+        (opcode_parser, operand_porser, opt(operand_porser)),
         |(opcode, operand0, operand1)| AssemblerInstr {
             directive: None,
             label: None,
@@ -93,14 +93,14 @@ pub fn parse_instr0(input: &str) -> IResult<&str, AssemblerInstr> {
     .parse(input)
 }
 
-pub fn parse_instr1(input: &str) -> IResult<&str, AssemblerInstr> {
+pub fn instr_parser1(input: &str) -> IResult<&str, AssemblerInstr> {
     map(
         (
-            opt(parse_label_decl),
-            parse_opcode,
-            opt(parse_operand),
-            opt(parse_operand),
-            opt(parse_operand),
+            opt(label_decl_parser),
+            opcode_parser,
+            opt(operand_porser),
+            opt(operand_porser),
+            opt(operand_porser),
         ),
         |(label, opcode, operand0, operand1, operand2)| AssemblerInstr {
             directive: None,
@@ -112,8 +112,8 @@ pub fn parse_instr1(input: &str) -> IResult<&str, AssemblerInstr> {
     .parse(input)
 }
 
-pub fn parse_instr2(input: &str) -> IResult<&str, AssemblerInstr> {
-    map((parse_opcode, parse_label_usage), |(opcode, label)| {
+pub fn instr_parser2(input: &str) -> IResult<&str, AssemblerInstr> {
+    map((opcode_parser, label_usage_parser), |(opcode, label)| {
         AssemblerInstr {
             directive: None,
             label: Some(label),
@@ -124,8 +124,8 @@ pub fn parse_instr2(input: &str) -> IResult<&str, AssemblerInstr> {
     .parse(input)
 }
 
-pub fn parse_instr(input: &str) -> IResult<&str, AssemblerInstr> {
-    alt((parse_instr2, parse_instr1, parse_instr0)).parse(input)
+pub fn instr_parser(input: &str) -> IResult<&str, AssemblerInstr> {
+    alt((instr_parser2, instr_parser1, instr_parser0)).parse(input)
 }
 
 #[cfg(test)]
@@ -134,8 +134,8 @@ mod tests {
     use crate::instruction::Opcode;
 
     #[test]
-    fn test_parse_instr1_no_registers() {
-        let result = parse_instr1("hlt");
+    fn test_instr_parser0_one_register() {
+        let result = instr_parser0("jump $0");
         assert!(result.is_ok());
         let (_, instr) = result.unwrap();
         assert_eq!(
@@ -143,31 +143,15 @@ mod tests {
             AssemblerInstr::new(
                 None,
                 None,
-                Some(Token::Op { code: Opcode::HLT }),
-                (None, None, None),
-            )
-        );
-    }
-
-    #[test]
-    fn test_parse_instr0_one_register() {
-        let result = parse_instr0("jmp $0");
-        assert!(result.is_ok());
-        let (_, instr) = result.unwrap();
-        assert_eq!(
-            instr,
-            AssemblerInstr::new(
-                None,
-                None,
-                Some(Token::Op { code: Opcode::JMP }),
+                Some(Token::Op { code: Opcode::JUMP }),
                 (Some(Token::Register { reg_index: 0 }), None, None),
             )
         );
     }
 
     #[test]
-    fn test_parse_instr0_register_with_int() {
-        let result = parse_instr0("load $0 #12");
+    fn test_instr_parser0_register_with_int() {
+        let result = instr_parser0("load $0 #12");
         assert!(result.is_ok());
         let (_, instr) = result.unwrap();
         assert_eq!(
@@ -186,8 +170,8 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_instr1_two_registers() {
-        let result = parse_instr1("neq $1 $24");
+    fn test_instr_parser1_no_registers() {
+        let result = instr_parser1("halt");
         assert!(result.is_ok());
         let (_, instr) = result.unwrap();
         assert_eq!(
@@ -195,7 +179,23 @@ mod tests {
             AssemblerInstr::new(
                 None,
                 None,
-                Some(Token::Op { code: Opcode::NEQ }),
+                Some(Token::Op { code: Opcode::HALT }),
+                (None, None, None),
+            )
+        );
+    }
+
+    #[test]
+    fn test_instr_parser1_two_registers() {
+        let result = instr_parser1("ne $1 $24");
+        assert!(result.is_ok());
+        let (_, instr) = result.unwrap();
+        assert_eq!(
+            instr,
+            AssemblerInstr::new(
+                None,
+                None,
+                Some(Token::Op { code: Opcode::NE }),
                 (
                     Some(Token::Register { reg_index: 1 }),
                     Some(Token::Register { reg_index: 24 }),
@@ -206,8 +206,8 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_instr1_three_registers() {
-        let result = parse_instr1("mul $1 $28 $3");
+    fn test_instr_parser1_three_registers() {
+        let result = instr_parser1("mul $1 $28 $3");
         assert!(result.is_ok());
         let (_, instr) = result.unwrap();
         assert_eq!(
@@ -226,8 +226,8 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_instr1_label_decl_no_registers() {
-        let result = parse_instr1("test: hlt");
+    fn test_instr_parser1_label_decl_no_registers() {
+        let result = instr_parser1("test: halt");
         assert!(result.is_ok());
         let (_, instr) = result.unwrap();
         assert_eq!(
@@ -237,15 +237,15 @@ mod tests {
                 Some(Token::LabelDecl {
                     name: "test".to_string()
                 }),
-                Some(Token::Op { code: Opcode::HLT }),
+                Some(Token::Op { code: Opcode::HALT }),
                 (None, None, None),
             )
         );
     }
 
     #[test]
-    fn test_parse_instr2_label_usage_no_registers() {
-        let result = parse_instr2("jmp @test");
+    fn test_instr_parser2_label_usage_no_registers() {
+        let result = instr_parser2("jump @test");
         assert!(result.is_ok());
         let (_, instr) = result.unwrap();
         assert_eq!(
@@ -255,7 +255,7 @@ mod tests {
                 Some(Token::LabelUsage {
                     name: "test".to_string()
                 }),
-                Some(Token::Op { code: Opcode::JMP }),
+                Some(Token::Op { code: Opcode::JUMP }),
                 (None, None, None,),
             )
         );
