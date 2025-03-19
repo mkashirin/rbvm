@@ -5,7 +5,7 @@ use nom::multi::many1;
 use nom::sequence::terminated;
 use nom::{IResult, Parser};
 
-use super::instruction_parser::{parse_instr, AssemblerInstr};
+use super::instruction_parser::{AssemblerInstr, parse_instr};
 
 #[derive(Debug, PartialEq)]
 pub struct Program {

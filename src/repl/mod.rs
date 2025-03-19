@@ -1,7 +1,8 @@
-use std::fs::{read_to_string, File};
+use std::fs::{File, read_to_string};
+use std::io;
+use std::io::Write;
 use std::num::ParseIntError;
 use std::path::Path;
-use std::{io, io::Write};
 
 use crate::assembler::program_parser::parse_program;
 use crate::vm::Vm;

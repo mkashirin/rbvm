@@ -1,4 +1,4 @@
-use program_parser::{parse_program, Program};
+use program_parser::{Program, parse_program};
 
 use crate::instruction::Opcode;
 
