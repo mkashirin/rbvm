@@ -4,7 +4,7 @@ use nom::{IResult, Parser};
 
 use super::opcode_parser::*;
 use super::operand_parser::parse_operand;
-use super::special_symbol_parser::{parse_label_decl, parse_label_usage};
+use super::symbol_parser::{parse_label_decl, parse_label_usage};
 use super::{AssemblerError, MaybeToken, Token};
 
 #[derive(Debug, PartialEq)]
@@ -125,7 +125,7 @@ pub fn parse_instr2(input: &str) -> IResult<&str, AssemblerInstr> {
 }
 
 pub fn parse_instr(input: &str) -> IResult<&str, AssemblerInstr> {
-    alt((parse_instr1, parse_instr0, parse_instr2)).parse(input)
+    alt((parse_instr2, parse_instr1, parse_instr0)).parse(input)
 }
 
 #[cfg(test)]
@@ -208,7 +208,6 @@ mod tests {
     #[test]
     fn test_parse_instr1_three_registers() {
         let result = parse_instr1("mul $1 $28 $3");
-        println!("{:?}", result);
         assert!(result.is_ok());
         let (_, instr) = result.unwrap();
         assert_eq!(
@@ -229,7 +228,6 @@ mod tests {
     #[test]
     fn test_parse_instr1_label_decl_no_registers() {
         let result = parse_instr1("test: hlt");
-        println!("{:?}", result);
         assert!(result.is_ok());
         let (_, instr) = result.unwrap();
         assert_eq!(
@@ -248,7 +246,6 @@ mod tests {
     #[test]
     fn test_parse_instr2_label_usage_no_registers() {
         let result = parse_instr2("jmp @test");
-        // println!("{:?}", result);
         assert!(result.is_ok());
         let (_, instr) = result.unwrap();
         assert_eq!(

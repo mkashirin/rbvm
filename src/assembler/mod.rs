@@ -6,7 +6,7 @@ pub mod instruction_parser;
 pub mod opcode_parser;
 pub mod operand_parser;
 pub mod program_parser;
-pub mod special_symbol_parser;
+pub mod symbol_parser;
 
 #[derive(Debug)]
 pub enum AssemblerError {
@@ -160,10 +160,9 @@ jmp @test
 add $1 $2 $3
 hlt";
         let assembled = assembler.assemble(program).unwrap();
-        println!("{:#?}", assembled);
         let mut vm = Vm::default();
-        assert_eq!(assembled.len(), 21);
+        assert_eq!(assembled.len(), 32);
         vm.push_bytes(assembled);
-        assert_eq!(vm.program.len(), 21);
+        assert_eq!(vm.program.len(), 32);
     }
 }
