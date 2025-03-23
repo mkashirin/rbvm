@@ -1,8 +1,7 @@
 use std::io;
 use std::io::Write;
-use std::num::ParseIntError;
 
-use crate::assembler::program_parsers::program_parser;
+use crate::assembler::program_parser::*;
 use crate::vm::Vm;
 
 #[allow(dead_code)]
@@ -42,8 +41,8 @@ impl Repl {
                 }
                 "!program" => {
                     println!("VM program vector:");
-                    for instruction in &self.vm.program {
-                        println!("{}", instruction);
+                    for instr in &self.vm.program {
+                        println!("{}", instr);
                     }
                 }
                 "!registers" => {
@@ -51,22 +50,9 @@ impl Repl {
                     println!("{:#?}", self.vm.registers);
                 }
                 _ => {
-                    // Code for parsing hexadecimal if you need it:
-                    // ```
-                    // let parsed = self.parse_hex(buffer);
-                    // match parsed {
-                    //     Ok(bytes) => {
-                    //         for value in bytes {
-                    //             self.vm.push_byte(value);
-                    //         }
-                    //     }
-                    //     Err(_) => println!("Unable to decode hex"),
-                    // };
-                    // self.vm.run_once();
-                    // ```
                     let parsed_program = program_parser(buffer);
-                    if parsed_program.is_err() {
-                        println!("Unable to parse input");
+                    if let Err(err) = parsed_program {
+                        println!("Unable to parse input: {:?}", err);
                         continue;
                     }
                     let (_, result) = parsed_program.unwrap();
@@ -78,22 +64,5 @@ impl Repl {
                 }
             }
         }
-    }
-
-    fn _parse_hex(&self, buffer: &str) -> Result<Vec<u8>, ParseIntError> {
-        let split = buffer.split(" ").collect::<Vec<&str>>();
-        let mut parsed: Vec<u8> = vec![];
-        for hex_string in split {
-            let byte = u8::from_str_radix(hex_string, 16);
-            match byte {
-                Ok(value) => {
-                    parsed.push(value);
-                }
-                Err(err) => {
-                    return Err(err);
-                }
-            }
-        }
-        Ok(parsed)
     }
 }

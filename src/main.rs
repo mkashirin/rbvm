@@ -1,6 +1,5 @@
-#![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
-#![feature(inherent_associated_types)]
+#![feature(generic_const_exprs)]
 
 use std::fs::read_to_string;
 
@@ -41,7 +40,7 @@ pub fn main() {
             let mut assembler = assembler::Assembler::default();
             let mut vm = vm::Vm::default();
             let bytecode = assembler.assemble(&source_code);
-            if let Some(bytecode) = bytecode {
+            if let Ok(bytecode) = bytecode {
                 vm.push_bytes(bytecode);
                 vm.run();
             }

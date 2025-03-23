@@ -5,22 +5,8 @@ use nom::multi::many1;
 use nom::sequence::terminated;
 use nom::{IResult, Parser};
 
-use super::instruction_parsers::{Instruction, instr_parser};
-
-#[derive(Debug, PartialEq)]
-pub struct Program {
-    pub instrs: Vec<Instruction>,
-}
-
-impl Program {
-    pub fn to_bytes(&self) -> Vec<u8> {
-        let mut program = vec![];
-        for instruction in &self.instrs {
-            program.append(&mut instruction.to_bytes());
-        }
-        program
-    }
-}
+use super::Program;
+use super::instruction_parsers::instr_parser;
 
 pub fn program_parser(input: &str) -> IResult<&str, Program> {
     map(

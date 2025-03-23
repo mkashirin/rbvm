@@ -6,7 +6,6 @@ pub struct Vm {
     pub registers: [i32; 8],
     pc: usize,
     pub program: Vec<u8>,
-    heap: Vec<u8>,
     remainder: u32,
     equal_flag: bool,
 }
@@ -16,7 +15,6 @@ impl Vm {
         fill_registers: Option<Vec<(usize, i32)>>,
         pc: Option<usize>,
         program: Vec<u8>,
-        heap: Option<Vec<u8>>,
         remainder: Option<u32>,
         equal_flag: Option<bool>,
     ) -> Vm {
@@ -29,14 +27,12 @@ impl Vm {
             }
         }
         let pc = pc.unwrap_or_default();
-        let heap = heap.unwrap_or_default();
         let remainder = remainder.unwrap_or_default();
         let equal_flag = equal_flag.unwrap_or_default();
         Vm {
             registers,
             pc,
             program,
-            heap,
             remainder,
             equal_flag,
         }
@@ -181,12 +177,6 @@ impl Vm {
                     self.pc = target as usize;
                 }
             }
-            Opcode::ALLO => {
-                let bytes = self.next_register();
-                self.next_16bits();
-                let new_len = self.heap.len() as i32 + bytes;
-                self.heap.resize(new_len as usize, 0);
-            }
             Opcode::INC => {
                 let register = self.next_8bits();
                 self.next_16bits();
@@ -232,7 +222,7 @@ mod tests {
         pc: Option<usize>,
         program: Vec<u8>,
     ) -> Vm {
-        Vm::new(fill_registers, pc, program, None, None, None)
+        Vm::new(fill_registers, pc, program, None, None)
     }
 
     #[test]
@@ -464,14 +454,5 @@ mod tests {
         test_vm1.equal_flag = true;
         test_vm1.run_once();
         assert_eq!(test_vm1.pc, 8);
-    }
-
-    #[test]
-    fn test_opcode_allo() {
-        let fill_registers = Some(vec![(0, 1024)]);
-        let program = vec![18, 0, 0, 0];
-        let mut test_vm = get_test_vm(fill_registers, None, program);
-        test_vm.run_once();
-        assert_eq!(test_vm.heap.len(), 1024)
     }
 }

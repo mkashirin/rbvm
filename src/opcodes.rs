@@ -18,7 +18,6 @@ pub enum Opcode {
     LTE,
     JE,
     JNE,
-    ALLO,
     INC,
     DEC,
     ILL,
@@ -45,9 +44,8 @@ impl From<u8> for Opcode {
             15 => Opcode::LTE,
             16 => Opcode::JE,
             17 => Opcode::JNE,
-            18 => Opcode::ALLO,
-            19 => Opcode::INC,
-            20 => Opcode::DEC,
+            18 => Opcode::INC,
+            19 => Opcode::DEC,
             _ => Opcode::ILL,
         }
     }
@@ -74,7 +72,6 @@ impl From<&str> for Opcode {
             "lte" => Opcode::LTE,
             "je" => Opcode::JE,
             "jne" => Opcode::JNE,
-            "allo" => Opcode::ALLO,
             "inc" => Opcode::INC,
             "dec" => Opcode::DEC,
             _ => Opcode::ILL,
