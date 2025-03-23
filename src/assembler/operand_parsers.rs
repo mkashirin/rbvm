@@ -8,25 +8,19 @@ use nom::{IResult, Parser};
 use super::{MaybeToken, Token};
 
 pub fn register_parser(input: &str) -> IResult<&str, Token> {
-    map(
-        preceded(
-            tag(" $"),
-            map_res(digit1, |inner: &str| inner.parse::<u8>()),
-        ),
-        |index| Token::Register { index },
-    )
-    .parse(input)
+    let tagged = preceded(
+        tag(" $"),
+        map_res(digit1, |index: &str| index.parse::<u8>()),
+    );
+    map(tagged, |index| Token::Register { index }).parse(input)
 }
 
 pub fn integer_parser(input: &str) -> IResult<&str, Token> {
-    map(
-        preceded(
-            tag(" #"),
-            map_res(digit1, |inner: &str| inner.parse::<i32>()),
-        ),
-        |value| Token::Integer { value },
-    )
-    .parse(input)
+    let tagged = preceded(
+        tag(" #"),
+        map_res(digit1, |value: &str| value.parse::<i32>()),
+    );
+    map(tagged, |value| Token::Integer { value }).parse(input)
 }
 
 pub fn operand_porser(input: &str) -> IResult<&str, Token> {

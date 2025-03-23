@@ -8,24 +8,20 @@ use super::operand_parsers::{oop, operand_porser};
 use super::{Instruction, MaybeToken, Token};
 
 pub fn instr_parser0(input: &str) -> IResult<&str, Instruction> {
-    map(
-        (opcode_parser, operand_porser, oop),
-        |(opcode, operand0, operand1)| Instruction {
-            opcode: Some(opcode),
-            operands: (Some(operand0), operand1, None),
-        },
-    )
+    let combined = (opcode_parser, operand_porser, oop);
+    map(combined, |(opcode, op0, op1)| Instruction {
+        opcode: Some(opcode),
+        operands: (Some(op0), op1, None),
+    })
     .parse(input)
 }
 
 pub fn instr_parser1(input: &str) -> IResult<&str, Instruction> {
-    map(
-        (opcode_parser, oop, oop, oop),
-        |(opcode, operand0, operand1, operand2)| Instruction {
-            opcode: Some(opcode),
-            operands: (operand0, operand1, operand2),
-        },
-    )
+    let combined = (opcode_parser, oop, oop, oop);
+    map(combined, |(opcode, op0, op1, op2)| Instruction {
+        opcode: Some(opcode),
+        operands: (op0, op1, op2),
+    })
     .parse(input)
 }
 

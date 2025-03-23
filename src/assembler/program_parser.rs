@@ -9,11 +9,9 @@ use super::Program;
 use super::instruction_parsers::instr_parser;
 
 pub fn program_parser(input: &str) -> IResult<&str, Program> {
-    map(
-        many1(alt((terminated(instr_parser, tag("\n")), instr_parser))),
-        |instrs| Program { instrs },
-    )
-    .parse(input)
+    let with_newline = terminated(instr_parser, tag("\n"));
+    let combined = alt((with_newline, instr_parser));
+    map(many1(combined), |instrs| Program { instrs }).parse(input)
 }
 
 #[cfg(test)]
@@ -26,7 +24,7 @@ mod tests {
         assert!(result.is_ok());
         let (leftover, program) = result.unwrap();
         assert_eq!(leftover, "");
-        assert_eq!(1, program.instrs.len());
+        assert_eq!(program.instrs.len(), 1);
     }
 
     #[test]
@@ -35,7 +33,7 @@ mod tests {
         assert!(result.is_ok());
         let (leftover, program) = result.unwrap();
         assert_eq!(leftover, "");
-        assert_eq!(1, program.instrs.len());
+        assert_eq!(program.instrs.len(), 1);
     }
 
     #[test]
@@ -44,7 +42,7 @@ mod tests {
         assert!(result.is_ok());
         let (leftover, program) = result.unwrap();
         assert_eq!(leftover, "");
-        assert_eq!(1, program.instrs.len());
+        assert_eq!(program.instrs.len(), 1);
     }
 
     #[test]
@@ -53,7 +51,7 @@ mod tests {
         assert!(result.is_ok());
         let (leftover, program) = result.unwrap();
         assert_eq!(leftover, "");
-        assert_eq!(1, program.instrs.len());
+        assert_eq!(program.instrs.len(), 1);
     }
 
     #[test]
@@ -62,7 +60,7 @@ mod tests {
         assert!(result.is_ok());
         let (leftover, program) = result.unwrap();
         assert_eq!(leftover, "");
-        assert_eq!(1, program.instrs.len());
+        assert_eq!(program.instrs.len(), 1);
     }
 
     #[test]

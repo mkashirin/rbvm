@@ -34,20 +34,19 @@ impl Repl {
                     println!("Exiting REPL...");
                     std::process::exit(0);
                 }
-                "!history" => {
+                "!hist" => {
                     for command in &self.command_buffer {
                         println!("{}", command)
                     }
                 }
-                "!program" => {
+                "!prog" => {
                     println!("VM program vector:");
                     for instr in &self.vm.program {
                         println!("{}", instr);
                     }
                 }
-                "!registers" => {
-                    println!("VM registers:");
-                    println!("{:#?}", self.vm.registers);
+                "!reg" => {
+                    println!("VM registers:\n{:#?}", self.vm.registers);
                 }
                 _ => {
                     let parsed_program = program_parser(buffer);
