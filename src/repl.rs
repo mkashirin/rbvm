@@ -35,6 +35,7 @@ impl Repl {
                     std::process::exit(0);
                 }
                 "!hist" => {
+                    println!("Command buffer:");
                     for command in &self.command_buffer {
                         println!("{}", command)
                     }
