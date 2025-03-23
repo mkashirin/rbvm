@@ -44,7 +44,6 @@ pub fn main() {
                 vm.push_bytes(bytecode);
                 vm.run();
             }
-            println!("VM state:\n{:#?}", vm);
         }
         Commands::Repl => {
             let mut repl = repl::Repl::new();
