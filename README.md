@@ -1,6 +1,6 @@
-<h1 align="center">RBVM<h1>
+<h1 align="center">RBVM</h1>
 
-<p align=center>Register-based virtual machine (RBVM) implemented in Rust.<p>
+<p align=center>Register-based virtual machine (RBVM) implemented in Rust.</p>
 
 ## Usage
 
