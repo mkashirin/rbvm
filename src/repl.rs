@@ -29,7 +29,7 @@ impl Repl {
                 "!exit" => return Ok(self.vm.clone()),
                 "!buffer" => self.print_command_buffer(),
                 "!registers" => println!("Registers: {:?}", self.vm.registers),
-                _ => self.process_line(buffer)?,
+                _ => self.process_line(buffer),
             }
         }
     }
@@ -41,10 +41,11 @@ impl Repl {
         }
     }
 
-    fn process_line(&mut self, buffer: &str) -> Result<(), Error> {
+    fn process_line(&mut self, buffer: &str) {
         let parsed_program = program_parser(buffer);
-        if let Err(_err) = parsed_program {
-            return Err(Error::InstructionNotParsed);
+        if let Err(_err) = &parsed_program {
+            eprintln!("Instruction not parsed. Resuming...");
+            return;
         }
         let (_, result) = parsed_program.unwrap();
         let bytecode = result.to_bytes();
@@ -54,9 +55,7 @@ impl Repl {
             }
             if let Err(Error::IllegalOpcode) = self.vm.run_once() {
                 eprintln!("Illegal opcode found. Resuming...");
-                return Ok(());
             }
         }
-        Ok(())
     }
 }
