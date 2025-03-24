@@ -6,9 +6,10 @@ pub enum Error {
     HaltEncountered,
     IllegalOpcode,
     InstructionNotParsed,
+    ReachedEof,
 }
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub enum State {
     #[default]
     Executing,
@@ -75,25 +76,30 @@ impl Vm {
     }
 
     pub fn run(&mut self) -> Result<(), Error> {
-        loop {
-            let result = self.execute_instruction();
+        while self.state != State::ReachedEof {
+            let result = self.run_once();
             match result {
-                Ok(_unit) => self.state = State::ReachedEof,
+                Ok(_unit) => self.state = State::Executing,
+                Err(Error::ReachedEof) => self.state = State::ReachedEof,
                 Err(Error::HaltEncountered) => self.state = State::Halted,
                 Err(Error::IllegalOpcode) => self.state = State::Resumed,
                 Err(Error::InstructionNotParsed) => self.state = State::Crashed,
             }
+            if self.state == State::Halted || self.state == State::ReachedEof {
+                break;
+            }
         }
+        Ok(())
     }
 
     pub fn run_once(&mut self) -> Result<(), Error> {
-        self.execute_instruction()?;
-        Ok(())
+        self.execute_instruction()
     }
 
     fn execute_instruction(&mut self) -> Result<(), Error> {
         if self.pc >= self.program.len() {
-            return Ok(());
+            self.state = State::ReachedEof;
+            return Err(Error::ReachedEof);
         }
         match self.decode_opcode() {
             Opcode::SKIP => self.skip(),
@@ -118,7 +124,6 @@ impl Vm {
             Opcode::DEC => self.dec(),
             Opcode::ILL => return Err(Error::IllegalOpcode),
         }
-        self.state = State::Executing;
         Ok(())
     }
 
