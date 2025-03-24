@@ -2,7 +2,7 @@ use nom::branch::alt;
 use nom::combinator::map;
 use nom::{IResult, Parser};
 
-use super::opcode_parsers::*;
+use super::opcode_parser::*;
 use super::operand_parsers::{oop, operand_porser};
 #[allow(unused_imports)]
 use super::{Instruction, MaybeToken, Token};

@@ -2,21 +2,17 @@ use std::io;
 use std::io::Write;
 
 use crate::assembler::program_parser::*;
-use crate::vm::Vm;
+use crate::vm::{Error, Vm};
 
 #[allow(dead_code)]
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Repl {
     vm: Vm,
     command_buffer: Vec<String>,
 }
 
 impl Repl {
-    pub fn new() -> Repl {
-        Repl::default()
-    }
-
-    pub fn run(&mut self) {
+    pub fn run(&mut self) -> Result<Vm, Error> {
         println!("RBVM (0.1.0) REPL");
         loop {
             let mut buffer = String::new();
@@ -30,39 +26,37 @@ impl Repl {
             let buffer = buffer.trim();
             self.command_buffer.push(buffer.to_string());
             match buffer {
-                "!exit" => {
-                    println!("Exiting REPL...");
-                    std::process::exit(0);
-                }
-                "!hist" => {
-                    println!("Command buffer:");
-                    for command in &self.command_buffer {
-                        println!("{}", command)
-                    }
-                }
-                "!prog" => {
-                    println!("VM program vector:");
-                    for instr in &self.vm.program {
-                        println!("{}", instr);
-                    }
-                }
-                "!reg" => {
-                    println!("VM registers:\n{:#?}", self.vm.registers);
-                }
-                _ => {
-                    let parsed_program = program_parser(buffer);
-                    if let Err(err) = parsed_program {
-                        println!("Unable to parse input: {:?}", err);
-                        continue;
-                    }
-                    let (_, result) = parsed_program.unwrap();
-                    let bytecode = result.to_bytes();
-                    for byte in bytecode {
-                        self.vm.push_byte(byte);
-                    }
-                    self.vm.run_once();
-                }
+                "!exit" => return Ok(self.vm.clone()),
+                "!buffer" => self.print_command_buffer(),
+                "!registers" => println!("Registers: {:?}", self.vm.registers),
+                _ => self.process_line(buffer)?,
             }
         }
+    }
+
+    fn print_command_buffer(&self) {
+        println!("Command buffer:");
+        for command in &self.command_buffer {
+            println!("{}", command)
+        }
+    }
+
+    fn process_line(&mut self, buffer: &str) -> Result<(), Error> {
+        let parsed_program = program_parser(buffer);
+        if let Err(_err) = parsed_program {
+            return Err(Error::InstructionNotParsed);
+        }
+        let (_, result) = parsed_program.unwrap();
+        let bytecode = result.to_bytes();
+        if let Ok(bytecode) = bytecode {
+            for byte in bytecode {
+                self.vm.push_byte(byte);
+            }
+            if let Err(Error::IllegalOpcode) = self.vm.run_once() {
+                eprintln!("Illegal opcode found. Resuming...");
+                return Ok(());
+            }
+        }
+        Ok(())
     }
 }

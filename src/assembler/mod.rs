@@ -3,13 +3,15 @@ use program_parser::program_parser;
 use crate::opcodes::Opcode;
 
 pub mod instruction_parsers;
-pub mod opcode_parsers;
+pub mod opcode_parser;
 pub mod operand_parsers;
 pub mod program_parser;
 
 #[derive(Debug)]
 pub enum Error {
     ParseError,
+    NotOpcode,
+    OpcodeOperand,
 }
 
 #[derive(Debug, Default)]
@@ -20,15 +22,15 @@ pub struct Assembler {
 impl Assembler {
     pub fn assemble(&mut self, source_code: &str) -> Result<Vec<u8>, Error> {
         match program_parser(source_code) {
-            Ok((_, program)) => Ok(self.emit_bytecode(program)),
+            Ok((_, program)) => Ok(self.emit_bytecode(program)?),
             Err(_err) => Err(Error::ParseError),
         }
     }
 
-    fn emit_bytecode(&mut self, program: Program) -> Vec<u8> {
-        self.bytecode = program.to_bytes();
+    fn emit_bytecode(&mut self, program: Program) -> Result<Vec<u8>, Error> {
+        self.bytecode = program.to_bytes()?;
         self.program = program;
-        self.bytecode.clone()
+        Ok(self.bytecode.clone())
     }
 }
 
@@ -37,13 +39,13 @@ pub struct Program {
     pub instrs: Vec<Instruction>,
 }
 impl Program {
-    pub fn to_bytes(&self) -> Vec<u8> {
-        let mut program = vec![];
+    pub fn to_bytes(&self) -> Result<Vec<u8>, Error> {
+        let mut bytecode = vec![];
         for instr in &self.instrs {
-            let mut bytes = instr.to_bytes();
-            program.append(&mut bytes);
+            let mut bytes = instr.to_bytes()?;
+            bytecode.append(&mut bytes);
         }
-        program
+        Ok(bytecode)
     }
 }
 
@@ -60,29 +62,31 @@ impl Instruction {
         Self { opcode, operands }
     }
 
-    pub fn to_bytes(&self) -> Vec<u8> {
+    pub fn to_bytes(&self) -> Result<Vec<u8>, Error> {
         let mut parsed = vec![];
         if let Some(Token::Op { code }) = &self.opcode {
             parsed.push(*code as u8);
         } else {
-            println!("Invalid value found in opcode field");
-            std::process::exit(1);
+            return Err(Error::NotOpcode);
         };
 
         for operand in
             [&self.operands.0, &self.operands.1, &self.operands.2].iter()
         {
             if let Some(token) = *operand {
-                Instruction::extract_operand(token, &mut parsed)
+                Instruction::extract_operand(&token, &mut parsed)?
             }
         }
         while parsed.len() < 4 {
             parsed.push(0);
         }
-        parsed
+        Ok(parsed)
     }
 
-    fn extract_operand(token: &Token, parsed: &mut Vec<u8>) {
+    fn extract_operand(
+        token: &Token,
+        parsed: &mut Vec<u8>,
+    ) -> Result<(), Error> {
         match token {
             Token::Register { index: reg_index } => {
                 parsed.push(*reg_index);
@@ -93,10 +97,10 @@ impl Instruction {
                 parsed.push(converted as u8);
             }
             _ => {
-                println!("Opcode found in operand field");
-                std::process::exit(1);
+                return Err(Error::OpcodeOperand);
             }
         };
+        Ok(())
     }
 }
 

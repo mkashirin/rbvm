@@ -11,6 +11,9 @@ pub mod repl;
 pub mod types;
 pub mod vm;
 
+const SUCCESS: i32 = 0;
+const ERROR: i32 = 1;
+
 #[derive(Parser, Debug)]
 #[command(name = "rbvm")]
 #[command(about = "RBVM (0.1.0) CLI", long_about = None)]
@@ -42,12 +45,20 @@ pub fn main() {
             let bytecode = assembler.assemble(&source_code);
             if let Ok(bytecode) = bytecode {
                 vm.push_bytes(bytecode);
-                vm.run();
             }
+            if let Err(err) = vm.run() {
+                eprintln!("An error ocurred: {:?}", err);
+                std::process::exit(ERROR);
+            }
+            println!("VM state: {:#?}", vm);
         }
         Commands::Repl => {
-            let mut repl = repl::Repl::new();
-            repl.run()
+            let mut repl = repl::Repl::default();
+            if let Err(err) = repl.run() {
+                eprintln!("An error ocurred: {:?}", err);
+                std::process::exit(ERROR);
+            }
         }
     }
+    std::process::exit(SUCCESS);
 }

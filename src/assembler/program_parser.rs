@@ -65,9 +65,11 @@ mod tests {
 
     #[test]
     fn test_program_parser_to_bytes() {
-        let result = program_parser("load $0 #102\n");
-        let (_, program) = result.unwrap();
+        let result0 = program_parser("load $0 #102\n");
+        let (_, program) = result0.unwrap();
         let bytecode = program.to_bytes();
-        assert_eq!(bytecode.len(), 4);
+        assert!(bytecode.is_ok());
+        let result1 = bytecode.unwrap();
+        assert_eq!(result1.len(), 4);
     }
 }
