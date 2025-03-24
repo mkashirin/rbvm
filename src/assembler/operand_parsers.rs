@@ -51,8 +51,8 @@ mod tests {
     fn test_int_operand_parser() {
         let result0 = integer_parser(" #52");
         assert!(result0.is_ok());
-        let (left, value) = result0.unwrap();
-        assert_eq!(left, "");
+        let (leftover, value) = result0.unwrap();
+        assert_eq!(leftover, "");
         assert_eq!(value, Token::Integer { value: 52 });
 
         let result1 = integer_parser("52");
