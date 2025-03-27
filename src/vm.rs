@@ -76,7 +76,7 @@ impl Vm {
     }
 
     pub fn run(&mut self) -> Result<(), Error> {
-        while self.state != State::ReachedEof {
+        loop {
             let result = self.run_once();
             match result {
                 Ok(_unit) => self.state = State::Executing,
@@ -93,6 +93,7 @@ impl Vm {
     }
 
     pub fn run_once(&mut self) -> Result<(), Error> {
+        self.state = State::Executing;
         self.execute_instruction()
     }
 

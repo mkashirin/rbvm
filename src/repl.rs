@@ -28,7 +28,7 @@ impl Repl {
             match buffer {
                 "!exit" => return Ok(self.vm.clone()),
                 "!buffer" => self.print_command_buffer(),
-                "!registers" => println!("Registers: {:?}", self.vm.registers),
+                "!registers" => println!("{:?}", self.vm.registers),
                 _ => self.process_line(buffer),
             }
         }
@@ -53,8 +53,8 @@ impl Repl {
             for byte in bytecode {
                 self.vm.push_byte(byte);
             }
-            if let Err(Error::IllegalOpcode) = self.vm.run_once() {
-                eprintln!("Illegal opcode found. Resuming...");
+            if let Err(err) = self.vm.run_once() {
+                eprintln!("Error ocurred while processing line: {:?}", err);
             }
         }
     }
