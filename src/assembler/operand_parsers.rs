@@ -1,6 +1,6 @@
 use nom::branch::alt;
 use nom::bytes::complete::tag;
-use nom::character::complete::digit1;
+use nom::character::complete::{digit1, space1};
 use nom::combinator::{map, map_res, opt};
 use nom::sequence::preceded;
 use nom::{IResult, Parser};
@@ -8,27 +8,27 @@ use nom::{IResult, Parser};
 use super::{MaybeToken, Token};
 
 pub fn register_parser(input: &str) -> IResult<&str, Token> {
-    let tagged = preceded(
-        tag(" $"),
-        map_res(digit1, |index: &str| index.parse::<u8>()),
-    );
-    map(tagged, |index| Token::Register { index }).parse(input)
+    let tagged =
+        preceded(tag("$"), map_res(digit1, |index: &str| index.parse::<u8>()));
+    let spaced = preceded(space1, tagged);
+    map(spaced, |index| Token::Register { index }).parse(input)
 }
 
 pub fn integer_parser(input: &str) -> IResult<&str, Token> {
     let tagged = preceded(
-        tag(" #"),
+        tag("#"),
         map_res(digit1, |value: &str| value.parse::<i32>()),
     );
-    map(tagged, |value| Token::Integer { value }).parse(input)
+    let spaced = preceded(space1, tagged);
+    map(spaced, |value| Token::Integer { value }).parse(input)
 }
 
-pub fn operand_porser(input: &str) -> IResult<&str, Token> {
+pub fn operand_parser(input: &str) -> IResult<&str, Token> {
     alt((register_parser, integer_parser)).parse(input)
 }
 
 pub fn oop(input: &str) -> IResult<&str, MaybeToken> {
-    opt(operand_porser).parse(input)
+    opt(operand_parser).parse(input)
 }
 
 #[cfg(test)]

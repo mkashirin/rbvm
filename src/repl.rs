@@ -37,7 +37,7 @@ impl Repl {
     fn print_command_buffer(&self) {
         println!("Command buffer:");
         for command in &self.command_buffer {
-            println!("{}", command)
+            println!("{command}")
         }
     }
 
@@ -54,7 +54,7 @@ impl Repl {
                 self.vm.push_byte(byte);
             }
             if let Err(err) = self.vm.run_once() {
-                eprintln!("Error ocurred while processing line: {:?}", err);
+                eprintln!("Error ocurred while processing line: {err:?}");
             }
         }
     }

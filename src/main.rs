@@ -1,5 +1,6 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
+#![feature(stmt_expr_attributes)]
 
 use std::fs::read_to_string;
 
@@ -47,15 +48,15 @@ pub fn main() {
                 vm.push_bytes(bytecode);
             }
             if let Err(err) = vm.run() {
-                eprintln!("An error ocurred: {:?}", err);
+                eprintln!("An error ocurred: {err:?}");
                 std::process::exit(ERROR);
             }
-            println!("VM state: {:#?}", vm);
+            println!("VM state: {vm:#?}");
         }
         Commands::Repl => {
             let mut repl = repl::Repl::default();
             if let Err(err) = repl.run() {
-                eprintln!("An error ocurred: {:?}", err);
+                eprintln!("An error ocurred: {err:?}");
                 std::process::exit(ERROR);
             }
         }

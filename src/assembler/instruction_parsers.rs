@@ -3,12 +3,12 @@ use nom::combinator::map;
 use nom::{IResult, Parser};
 
 use super::opcode_parser::*;
-use super::operand_parsers::{oop, operand_porser};
+use super::operand_parsers::{oop, operand_parser};
 #[allow(unused_imports)]
 use super::{Instruction, MaybeToken, Token};
 
 pub fn instr_parser0(input: &str) -> IResult<&str, Instruction> {
-    let combined = (opcode_parser, operand_porser, oop);
+    let combined = (opcode_parser, operand_parser, oop);
     map(combined, |(opcode, op0, op1)| Instruction {
         opcode: Some(opcode),
         operands: (Some(op0), op1, None),

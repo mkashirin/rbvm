@@ -1,6 +1,9 @@
 use crate::opcodes::Opcode;
 use crate::types::BoundedUsize;
 
+const IGNORE_HALTED: bool = false;
+const IGNORE_ILLEGAL: bool = false;
+
 #[derive(Debug)]
 pub enum Error {
     HaltEncountered,
@@ -87,6 +90,8 @@ impl Vm {
             }
             if self.state == State::Halted || self.state == State::ReachedEof {
                 break;
+            } else if self.state == State::Crashed {
+                return Err(Error::InstructionNotParsed);
             }
         }
         Ok(())
@@ -102,34 +107,42 @@ impl Vm {
             self.state = State::ReachedEof;
             return Err(Error::ReachedEof);
         }
-        match self.decode_opcode() {
-            Opcode::SKIP => self.skip(),
-            Opcode::HALT => return Err(Error::HaltEncountered),
-            Opcode::LOAD => self.load(),
-            Opcode::ADD => self.add(),
-            Opcode::SUB => self.sub(),
-            Opcode::MUL => self.mul(),
-            Opcode::DIV => self.div(),
-            Opcode::JUMP => self.jump(),
-            Opcode::JF => self.jf(),
-            Opcode::JB => self.jb(),
-            Opcode::EQ => self.eq(),
-            Opcode::NE => self.ne(),
-            Opcode::GT => self.gt(),
-            Opcode::LT => self.lt(),
-            Opcode::GTE => self.gte(),
-            Opcode::LTE => self.lte(),
-            Opcode::JE => self.je(),
-            Opcode::JNE => self.jne(),
-            Opcode::INC => self.inc(),
-            Opcode::DEC => self.dec(),
-            Opcode::ILL => return Err(Error::IllegalOpcode),
+        let decoded = self.decode_opcode();
+        #[rustfmt::skip]
+        match decoded {
+            Opcode::PAD     => self.pad(),
+            Opcode::HALT    => return self.halt(),
+            Opcode::LOAD    => self.load(),
+            Opcode::ADD     => self.add(),
+            Opcode::SUB     => self.sub(),
+            Opcode::MUL     => self.mul(),
+            Opcode::DIV     => self.div(),
+            Opcode::JUMP    => self.jump(),
+            Opcode::JF      => self.jf(),
+            Opcode::JB      => self.jb(),
+            Opcode::EQ      => self.eq(),
+            Opcode::NE      => self.ne(),
+            Opcode::GT      => self.gt(),
+            Opcode::LT      => self.lt(),
+            Opcode::GTE     => self.gte(),
+            Opcode::LTE     => self.lte(),
+            Opcode::JE      => self.je(),
+            Opcode::JNE     => self.jne(),
+            Opcode::INC     => self.inc(),
+            Opcode::DEC     => self.dec(),
+            Opcode::ILL     => return self.ill(),
         }
         Ok(())
     }
 
-    fn skip(&mut self) {
-        self.next_8bits();
+    fn pad(&mut self) {}
+
+    fn halt(&mut self) -> Result<(), Error> {
+        self.pc += 3;
+        if IGNORE_HALTED {
+            return Ok(());
+        }
+        Err(Error::HaltEncountered)
     }
 
     fn load(&mut self) {
@@ -251,6 +264,14 @@ impl Vm {
         self.registers[register as usize] -= 1;
     }
 
+    fn ill(&mut self) -> Result<(), Error> {
+        self.pc += 3;
+        if IGNORE_ILLEGAL {
+            return Ok(());
+        }
+        Err(Error::IllegalOpcode)
+    }
+
     fn next_register(&mut self) -> i32 {
         self.registers[self.next_8bits() as usize]
     }
@@ -293,7 +314,7 @@ mod tests {
         let mut test_vm = get_test_vm(None, None, program);
         let result = test_vm.run_once();
         assert!(result.is_err());
-        assert_eq!(test_vm.pc, 1);
+        assert_eq!(test_vm.pc, 4);
     }
 
     #[test]
@@ -302,7 +323,7 @@ mod tests {
         let mut test_vm = get_test_vm(None, None, program);
         let result = test_vm.run_once();
         assert!(result.is_err());
-        assert_eq!(test_vm.pc, 1);
+        assert_eq!(test_vm.pc, 4);
     }
 
     #[test]

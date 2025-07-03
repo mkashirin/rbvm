@@ -74,7 +74,7 @@ impl Instruction {
             [&self.operands.0, &self.operands.1, &self.operands.2].iter()
         {
             if let Some(token) = *operand {
-                Instruction::extract_operand(&token, &mut parsed)?
+                Instruction::extract_operand(token, &mut parsed)?
             }
         }
         while parsed.len() < 4 {
